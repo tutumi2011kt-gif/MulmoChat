@@ -32,6 +32,13 @@
         Using stored API keys.
         <button @click="clearKeys" class="underline text-blue-600">Change</button>
       </p>
+      <div
+        v-if="messages.length || currentText"
+        class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm"
+      >
+        <div v-for="(m, i) in messages" :key="i">{{ m }}</div>
+        <div v-if="currentText">{{ currentText }}</div>
+      </div>
       <textarea
         v-model="systemPrompt"
         placeholder="You are a helpful assistant."
@@ -72,6 +79,9 @@ const tempGeminiKey = ref('')
 const audioEl = ref(null)
 const connecting = ref(false)
 const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
+const messages = ref([])
+const currentText = ref('')
+const pendingToolArgs = {}
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val)
@@ -139,13 +149,29 @@ async function startChat() {
         console.error('Error', msg.error)
       }
       if (msg.type === 'response.text.delta') {
-        console.log('Text delta', msg)
+        currentText.value += msg.delta
+      }
+      if (msg.type === 'response.completed') {
+        if (currentText.value.trim()) {
+          messages.value.push(currentText.value)
+        }
+        currentText.value = ''
       }
       if (msg.type === 'response.function_call_arguments.delta') {
-        console.log('Function call arguments delta', msg)
+        const id = msg.id || msg.call_id
+        pendingToolArgs[id] = (pendingToolArgs[id] || '') + msg.delta
       }
       if (msg.type === 'response.call_tool' && msg.name === 'generateImage') {
-        const { prompt } = msg.arguments || {}
+        const id = msg.id || msg.call_id
+        let args = {}
+        try {
+          const argStr = pendingToolArgs[id] || msg.arguments || ''
+          args = typeof argStr === 'string' ? JSON.parse(argStr) : argStr
+        } catch (e) {
+          console.error('Failed to parse function call arguments', e)
+        }
+        delete pendingToolArgs[id]
+        const { prompt } = args || {}
         // Allow the model to continue immediately while the image is generated
         console.log('Generating image', prompt)
         generateImage(geminiKey.value, prompt, (image) => {
