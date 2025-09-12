@@ -118,8 +118,8 @@ async function startChat() {
     dc.addEventListener('open', () => {
       dc.send(
         JSON.stringify({
-          type: 'response.create',
-          response: {
+          type: 'session.update',
+          session: {
             instructions: systemPrompt.value,
             tools: [
               {
