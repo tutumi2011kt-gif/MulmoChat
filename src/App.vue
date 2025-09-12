@@ -114,6 +114,7 @@ async function startChat() {
             tools: [
               {
                 name: 'generateImage',
+                type: 'function',
                 description: 'Generate an image from a text prompt.',
                 parameters: {
                   type: 'object',
