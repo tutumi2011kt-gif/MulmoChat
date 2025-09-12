@@ -30,11 +30,19 @@
         class="w-full border rounded px-2 py-1"
       ></textarea>
       <button
+        v-if="!chatActive"
         @click="startChat"
         :disabled="connecting"
         class="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
       >
         {{ connecting ? 'Connecting...' : 'Start Voice Chat' }}
+      </button>
+      <button
+        v-else
+        @click="stopChat"
+        class="px-4 py-2 bg-red-600 text-white rounded"
+      >
+        Stop Voice Chat
       </button>
       <audio ref="audioEl" autoplay></audio>
     </div>
@@ -56,6 +64,11 @@ const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val)
 })
+const chatActive = ref(false)
+
+let pc = null
+let localStream = null
+let remoteStream = null
 
 function saveKey() {
   localStorage.setItem(STORAGE_KEY, tempKey.value)
@@ -71,7 +84,7 @@ function clearKey() {
 async function startChat() {
   connecting.value = true
   try {
-    const pc = new RTCPeerConnection()
+    pc = new RTCPeerConnection()
 
     // Data channel for model events
     const dc = pc.createDataChannel('oai-events')
@@ -85,7 +98,7 @@ async function startChat() {
     })
 
     // Play remote audio
-    const remoteStream = new MediaStream()
+    remoteStream = new MediaStream()
     pc.ontrack = (event) => {
       remoteStream.addTrack(event.track)
     }
@@ -94,7 +107,7 @@ async function startChat() {
     }
 
     // Send microphone audio
-    const localStream = await navigator.mediaDevices.getUserMedia({ audio: true })
+    localStream = await navigator.mediaDevices.getUserMedia({ audio: true })
     localStream.getTracks().forEach((track) => pc.addTrack(track, localStream))
 
     // Create and send offer SDP
@@ -115,12 +128,32 @@ async function startChat() {
 
     const answer = { type: 'answer', sdp: await response.text() }
     await pc.setRemoteDescription(answer)
+    chatActive.value = true
   } catch (err) {
     console.error(err)
     alert('Failed to start voice chat. Check console for details.')
   } finally {
     connecting.value = false
   }
+}
+
+function stopChat() {
+  if (pc) {
+    pc.close()
+    pc = null
+  }
+  if (localStream) {
+    localStream.getTracks().forEach((track) => track.stop())
+    localStream = null
+  }
+  if (remoteStream) {
+    remoteStream.getTracks().forEach((track) => track.stop())
+    remoteStream = null
+  }
+  if (audioEl.value) {
+    audioEl.value.srcObject = null
+  }
+  chatActive.value = false
 }
 </script>
 
