@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.3.3",
     "vue": "^3.4.21"
   },
   "devDependencies": {
