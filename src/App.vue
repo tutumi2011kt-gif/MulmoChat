@@ -3,26 +3,34 @@
     <h1 class="text-2xl font-bold">mulmochat</h1>
 
     <!-- API key prompt -->
-    <div v-if="!apiKey" class="space-y-2">
-      <p class="text-sm">Enter your OpenAI API key to start chatting.</p>
+    <div v-if="!openaiKey || !geminiKey" class="space-y-2">
+      <p class="text-sm">Enter your OpenAI and Gemini API keys to start chatting.</p>
       <div class="flex gap-2">
         <input
-          v-model="tempKey"
+          v-model="tempOpenaiKey"
           type="password"
-          placeholder="sk-..."
+          placeholder="OpenAI sk-..."
           class="border rounded px-2 py-1 flex-1"
         />
-        <button @click="saveKey" class="px-3 py-1 bg-blue-600 text-white rounded">
-          Save
-        </button>
       </div>
+      <div class="flex gap-2">
+        <input
+          v-model="tempGeminiKey"
+          type="password"
+          placeholder="Gemini key"
+          class="border rounded px-2 py-1 flex-1"
+        />
+      </div>
+      <button @click="saveKeys" class="px-3 py-1 bg-blue-600 text-white rounded">
+        Save
+      </button>
     </div>
 
     <!-- Voice chat controls -->
     <div v-else class="space-y-2">
       <p class="text-sm">
-        Using stored API key.
-        <button @click="clearKey" class="underline text-blue-600">Change</button>
+        Using stored API keys.
+        <button @click="clearKeys" class="underline text-blue-600">Change</button>
       </p>
       <textarea
         v-model="systemPrompt"
@@ -52,11 +60,14 @@
 <script setup>
 import { ref, watch } from 'vue'
 
-const STORAGE_KEY = 'openai_api_key'
+const OPENAI_STORAGE_KEY = 'openai_api_key'
+const GEMINI_STORAGE_KEY = 'gemini_api_key'
 const SYSTEM_PROMPT_KEY = 'system_prompt'
 
-const apiKey = ref(localStorage.getItem(STORAGE_KEY) || '')
-const tempKey = ref('')
+const openaiKey = ref(localStorage.getItem(OPENAI_STORAGE_KEY) || '')
+const geminiKey = ref(localStorage.getItem(GEMINI_STORAGE_KEY) || '')
+const tempOpenaiKey = ref('')
+const tempGeminiKey = ref('')
 const audioEl = ref(null)
 const connecting = ref(false)
 const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
@@ -70,15 +81,20 @@ let pc = null
 let localStream = null
 let remoteStream = null
 
-function saveKey() {
-  localStorage.setItem(STORAGE_KEY, tempKey.value)
-  apiKey.value = tempKey.value
-  tempKey.value = ''
+function saveKeys() {
+  localStorage.setItem(OPENAI_STORAGE_KEY, tempOpenaiKey.value)
+  localStorage.setItem(GEMINI_STORAGE_KEY, tempGeminiKey.value)
+  openaiKey.value = tempOpenaiKey.value
+  geminiKey.value = tempGeminiKey.value
+  tempOpenaiKey.value = ''
+  tempGeminiKey.value = ''
 }
 
-function clearKey() {
-  localStorage.removeItem(STORAGE_KEY)
-  apiKey.value = ''
+function clearKeys() {
+  localStorage.removeItem(OPENAI_STORAGE_KEY)
+  localStorage.removeItem(GEMINI_STORAGE_KEY)
+  openaiKey.value = ''
+  geminiKey.value = ''
 }
 
 async function startChat() {
@@ -119,7 +135,7 @@ async function startChat() {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey.value}`,
+          Authorization: `Bearer ${openaiKey.value}`,
           'Content-Type': 'application/sdp'
         },
         body: offer.sdp
