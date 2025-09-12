@@ -133,19 +133,25 @@ async function startChat() {
     })
     dc.addEventListener('message', (event) => {
       const msg = JSON.parse(event.data)
+      console.log('Message', event.data.length, msg.type)
+      if (msg.type === 'error') {
+        console.error('Error', msg.error)
+      }
       if (msg.type === 'response.call_tool' && msg.name === 'generateImage') {
         const { prompt } = msg.arguments || {}
         // Allow the model to continue immediately while the image is generated
+        console.log('Generating image', prompt)
+        generateImage(geminiKey.value, prompt, (image) => {
+          console.log('Generated image', image.length)
+          const img = new Image()
+          img.src = image
+          document.body.appendChild(img)
+        })
         dc.send(
           JSON.stringify({
             type: 'response.create'
           })
         )
-        generateImage(geminiKey.value, prompt, (image) => {
-          const img = new Image()
-          img.src = image
-          document.body.appendChild(img)
-        })
       }
     })
 
