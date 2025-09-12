@@ -138,6 +138,12 @@ async function startChat() {
       if (msg.type === 'error') {
         console.error('Error', msg.error)
       }
+      if (msg.type === 'response.text.delta') {
+        console.log('Text delta', msg)
+      }
+      if (msg.type === 'response.function_call_arguments.delta') {
+        console.log('Function call arguments delta', msg)
+      }
       if (msg.type === 'response.call_tool' && msg.name === 'generateImage') {
         const { prompt } = msg.arguments || {}
         // Allow the model to continue immediately while the image is generated
