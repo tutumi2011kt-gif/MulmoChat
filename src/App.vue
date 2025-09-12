@@ -59,6 +59,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
+import { generateImage } from './generateImage'
 
 const OPENAI_STORAGE_KEY = 'openai_api_key'
 const GEMINI_STORAGE_KEY = 'gemini_api_key'
@@ -108,9 +109,44 @@ async function startChat() {
       dc.send(
         JSON.stringify({
           type: 'response.create',
-          response: { instructions: systemPrompt.value }
+          response: {
+            instructions: systemPrompt.value,
+            tools: [
+              {
+                name: 'generateImage',
+                description: 'Generate an image from a text prompt.',
+                parameters: {
+                  type: 'object',
+                  properties: {
+                    prompt: {
+                      type: 'string',
+                      description: 'Description of the desired image'
+                    }
+                  },
+                  required: ['prompt']
+                }
+              }
+            ]
+          }
         })
       )
+    })
+    dc.addEventListener('message', (event) => {
+      const msg = JSON.parse(event.data)
+      if (msg.type === 'response.call_tool' && msg.name === 'generateImage') {
+        const { prompt } = msg.arguments || {}
+        // Allow the model to continue immediately while the image is generated
+        dc.send(
+          JSON.stringify({
+            type: 'response.create'
+          })
+        )
+        generateImage(geminiKey.value, prompt, (image) => {
+          const img = new Image()
+          img.src = image
+          document.body.appendChild(img)
+        })
+      }
     })
 
     // Play remote audio
