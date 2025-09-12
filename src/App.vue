@@ -24,6 +24,11 @@
         Using stored API key.
         <button @click="clearKey" class="underline text-blue-600">Change</button>
       </p>
+      <textarea
+        v-model="systemPrompt"
+        placeholder="You are a helpful assistant."
+        class="w-full border rounded px-2 py-1"
+      ></textarea>
       <button
         v-if="!chatActive"
         @click="startChat"
@@ -45,14 +50,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 const STORAGE_KEY = 'openai_api_key'
+const SYSTEM_PROMPT_KEY = 'system_prompt'
 
 const apiKey = ref(localStorage.getItem(STORAGE_KEY) || '')
 const tempKey = ref('')
 const audioEl = ref(null)
 const connecting = ref(false)
+const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
+
+watch(systemPrompt, (val) => {
+  localStorage.setItem(SYSTEM_PROMPT_KEY, val)
+})
 const chatActive = ref(false)
 
 let pc = null
@@ -78,7 +89,12 @@ async function startChat() {
     // Data channel for model events
     const dc = pc.createDataChannel('oai-events')
     dc.addEventListener('open', () => {
-      dc.send(JSON.stringify({ type: 'response.create' }))
+      dc.send(
+        JSON.stringify({
+          type: 'response.create',
+          response: { instructions: systemPrompt.value }
+        })
+      )
     })
 
     // Play remote audio
