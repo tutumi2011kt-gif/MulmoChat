@@ -161,7 +161,7 @@ async function startChat() {
         const id = msg.id || msg.call_id
         pendingToolArgs[id] = (pendingToolArgs[id] || '') + msg.delta
       }
-      if (msg.type === 'response.call_tool' && msg.name === 'generateImage') {
+      if (msg.type === 'response.function_call_arguments.done' && msg.name === 'generateImage') {
         const id = msg.id || msg.call_id
         let args = {}
         try {
