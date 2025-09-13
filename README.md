@@ -1,7 +1,9 @@
 # MulmoChat
 
-NLUI (Natural Language UI) application. At this monent, it allows the user to
-- generate images
+MulmoChat is a prototype of ultimate NLUI application (NL = Natural Language). 
+
+At this monent, it allows the user to
+- generate images using Google's nano banana
 
 ## Getting Started
 
