@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI, PersonGeneration } from "@google/genai";
 
 /**
  * Generate an image from a text prompt using Google's Gemini model.
@@ -13,14 +14,12 @@ export async function generateImage(
   callback: (image: string) => void
 ): Promise<void> {
   try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      generationConfig: { responseMimeType: "image/png" },
-    });
+    const ai = new GoogleGenAI({ apiKey });
+    const model = "gemini-2.5-flash-image-preview";
+    const contents: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [{ text: prompt }];
+    const response = await ai.models.generateContent({ model, contents });
     const imageData =
-      result.response?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      response?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
     if (imageData) {
       callback(`data:image/png;base64,${imageData}`);
     }
