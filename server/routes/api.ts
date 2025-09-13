@@ -72,63 +72,6 @@ router.post("/start", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-// Chat history endpoint
-router.get("/chat/history", (req: Request, res: Response) => {
-  res.json({
-    messages: [
-      {
-        id: 1,
-        text: "Hello!",
-        timestamp: new Date().toISOString(),
-        type: "user",
-      },
-      {
-        id: 2,
-        text: "Hi there! How can I help you?",
-        timestamp: new Date().toISOString(),
-        type: "assistant",
-      },
-    ],
-  });
-});
-
-// Save chat message
-router.post("/chat/message", (req: Request, res: Response): void => {
-  const { text, type } = req.body;
-
-  if (!text || !type) {
-    res.status(400).json({ error: "Text and type are required" });
-    return;
-  }
-
-  const message = {
-    id: Date.now(),
-    text,
-    type,
-    timestamp: new Date().toISOString(),
-  };
-
-  res.json({ success: true, message });
-});
-
-// User preferences
-router.get("/user/preferences", (req: Request, res: Response) => {
-  res.json({
-    theme: "dark",
-    language: "en",
-    notifications: true,
-  });
-});
-
-router.put("/user/preferences", (req: Request, res: Response) => {
-  const { theme, language, notifications } = req.body;
-
-  res.json({
-    success: true,
-    preferences: { theme, language, notifications },
-  });
-});
-
 // Generate image endpoint
 router.post(
   "/generate-image",
