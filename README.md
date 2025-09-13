@@ -1,4 +1,4 @@
-# mulmochat
+# MulmoChat
 
 This repository is set up with [Vue 3](https://vuejs.org/), [Vite](https://vitejs.dev/), and [Tailwind CSS](https://tailwindcss.com/).
 
@@ -7,17 +7,18 @@ This repository is set up with [Vue 3](https://vuejs.org/), [Vite](https://vitej
 Install dependencies:
 
 ```sh
-npm install
+yarn install
+```
+
+Create .env file with following API keys:
+
+```
+OPENAI_API_KEY=...
+GEMINI_API_KEY=...
 ```
 
 Start a development server:
 
 ```sh
-npm run dev
-```
-
-Build for production:
-
-```sh
-npm run build
+yarn dev
 ```
