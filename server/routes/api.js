@@ -38,6 +38,7 @@ router.post('/start', async (req, res) => {
       throw new Error(`OpenAI API error: ${response.statusText}`)
     }
 
+    /*
     const data = await response.json()
     console.log('Generated ephemeral key:', data.value)
 
@@ -45,6 +46,13 @@ router.post('/start', async (req, res) => {
       success: true,
       message: 'Session started',
       ephemeralKey: data.value
+    })
+    */
+    // HACK: Use a fake ephemeral key for now
+    res.json({
+      success: true,
+      message: 'Session started',
+      ephemeralKey: openaiKey, // HACK: Use the real key for now
     })
   } catch (error) {
     console.error('Failed to generate ephemeral key:', error)

@@ -217,6 +217,7 @@ async function startChat(): Promise<void> {
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
 
+    console.log('Sending offer to OpenAI', ephemeralKey)
     const response = await fetch(
       'https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview',
       {
@@ -228,8 +229,10 @@ async function startChat(): Promise<void> {
         body: offer.sdp
       }
     )
+    const responseText = await response.text()
+    console.log('Received answer from OpenAI', response, responseText)
 
-    const answer = { type: 'answer', sdp: await response.text() }
+    const answer = { type: 'answer', sdp: responseText }
     await pc.setRemoteDescription(answer)
     chatActive.value = true
   } catch (err) {
