@@ -6,8 +6,8 @@ dotenv.config();
 const router: Router = express.Router();
 
 // Session start endpoint
-router.post("/start", async (req: Request, res: Response): Promise<void> => {
-  console.log("session started", process.env.OPENAI_API_KEY);
+router.get("/start", async (req: Request, res: Response): Promise<void> => {
+  console.log("Chat session started");
 
   const openaiKey = process.env.OPENAI_API_KEY;
 

@@ -187,7 +187,7 @@ async function startChat(): Promise<void> {
   };
   try {
     const response = await fetch("/api/start", {
-      method: "POST",
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
