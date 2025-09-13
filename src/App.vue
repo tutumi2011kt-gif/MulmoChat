@@ -202,10 +202,12 @@ async function startChat(): Promise<void> {
           type: 'session.update',
           session: {
             instructions: systemPrompt.value,
+            modalities: ['text', 'audio'],
+            voice: 'shimmer',
             tools: [
               {
-                name: 'generateImage',
                 type: 'function',
+                name: 'generateImage',
                 description: 'Generate an image from a text prompt.',
                 parameters: {
                   type: 'object',
