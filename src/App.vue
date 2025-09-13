@@ -33,18 +33,35 @@
       </button>
       <audio ref="audioEl" autoplay></audio>
     </div>
+
+    <!-- Generated images container -->
+    <div
+      ref="imageContainer"
+      class="border rounded p-2 h-60 overflow-y-auto space-y-2"
+    >
+      <div v-if="!generatedImages.length" class="text-gray-500 text-sm">Generated images will appear here...</div>
+      <img
+        v-for="(image, index) in generatedImages"
+        :key="index"
+        :src="image"
+        class="max-w-full h-auto rounded"
+        alt="Generated image"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 
 const SYSTEM_PROMPT_KEY = 'system_prompt'
 const audioEl = ref<HTMLAudioElement | null>(null)
+const imageContainer = ref<HTMLDivElement | null>(null)
 const connecting = ref(false)
 const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
 const messages = ref<string[]>([])
 const currentText = ref('')
+const generatedImages = ref<string[]>([])
 const pendingToolArgs: Record<string, string> = {}
 
 watch(systemPrompt, (val) => {
@@ -179,9 +196,12 @@ async function startChat(): Promise<void> {
         console.log('Generating image', prompt)
         generateImage(prompt, (image) => {
           console.log('Generated image', image.length)
-          const img = new Image()
-          img.src = image
-          document.body.appendChild(img)
+          generatedImages.value.push(image)
+          nextTick(() => {
+            if (imageContainer.value) {
+              imageContainer.value.scrollTop = imageContainer.value.scrollHeight
+            }
+          })
         })
         dc.send(
           JSON.stringify({
