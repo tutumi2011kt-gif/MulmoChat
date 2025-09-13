@@ -21,7 +21,7 @@ router.post('/start', async (req, res) => {
         type: "realtime",
         model: "gpt-realtime",
         audio: {
-          output: { voice: "marin" },
+          output: { voice: "shimmer" },
         },
       },
     })
