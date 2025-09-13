@@ -2,28 +2,8 @@
   <div class="p-4 space-y-4">
     <h1 class="text-2xl font-bold">mulmochat</h1>
 
-    <!-- API key prompt -->
-    <div v-if="!geminiKey" class="space-y-2">
-      <p class="text-sm">Enter your Gemini API key to start chatting.</p>
-      <div class="flex gap-2">
-        <input
-          v-model="tempGeminiKey"
-          type="password"
-          placeholder="Gemini key"
-          class="border rounded px-2 py-1 flex-1"
-        />
-      </div>
-      <button @click="saveKeys" class="px-3 py-1 bg-blue-600 text-white rounded">
-        Save
-      </button>
-    </div>
-
     <!-- Voice chat controls -->
-    <div v-else class="space-y-2">
-      <p class="text-sm">
-        Using stored Gemini API key.
-        <button @click="clearKeys" class="underline text-blue-600">Change</button>
-      </p>
+    <div class="space-y-2">
       <div
         v-if="messages.length || currentText"
         class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm"
@@ -58,13 +38,8 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { generateImage } from './generateImage'
 
-const GEMINI_STORAGE_KEY = 'gemini_api_key'
 const SYSTEM_PROMPT_KEY = 'system_prompt'
-
-const geminiKey = ref(localStorage.getItem(GEMINI_STORAGE_KEY) || '')
-const tempGeminiKey = ref('')
 const audioEl = ref<HTMLAudioElement | null>(null)
 const connecting = ref(false)
 const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
@@ -81,15 +56,31 @@ let pc: RTCPeerConnection | null = null
 let localStream: MediaStream | null = null
 let remoteStream: MediaStream | null = null
 
-function saveKeys(): void {
-  localStorage.setItem(GEMINI_STORAGE_KEY, tempGeminiKey.value)
-  geminiKey.value = tempGeminiKey.value
-  tempGeminiKey.value = ''
-}
+async function generateImage(prompt: string, callback: (image: string) => void): Promise<void> {
+  try {
+    const response = await fetch('/api/generate-image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ prompt })
+    })
 
-function clearKeys(): void {
-  localStorage.removeItem(GEMINI_STORAGE_KEY)
-  geminiKey.value = ''
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+
+    if (data.success && data.image) {
+      console.log('*** Image generation succeeded', data.image.length)
+      callback(data.image)
+    } else {
+      throw new Error(data.error || 'Failed to generate image')
+    }
+  } catch (error) {
+    console.error('*** Image generation failed', error)
+  }
 }
 
 async function startChat(): Promise<void> {
@@ -186,7 +177,7 @@ async function startChat(): Promise<void> {
         const { prompt } = args || {}
         // Allow the model to continue immediately while the image is generated
         console.log('Generating image', prompt)
-        generateImage(geminiKey.value, prompt, (image) => {
+        generateImage(prompt, (image) => {
           console.log('Generated image', image.length)
           const img = new Image()
           img.src = image
