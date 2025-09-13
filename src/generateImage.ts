@@ -18,13 +18,24 @@ export async function generateImage(
     const model = "gemini-2.5-flash-image-preview";
     const contents: { text?: string; inlineData?: { mimeType: string; data: string } }[] = [{ text: prompt }];
     const response = await ai.models.generateContent({ model, contents });
-    const imageData =
-      response?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (imageData) {
-      callback(`data:image/png;base64,${imageData}`);
+    const parts = response.candidates?.[0]?.content?.parts ?? [];
+    console.log("*** Gemini image generation response parts:", parts.length);
+    for (const part of parts) {
+      if (part.text) {
+        console.log("*** Gemini image generation response:", part.text);
+      } else if (part.inlineData) {
+        const imageData = part.inlineData.data;
+        if (!imageData) {
+          throw new Error("ERROR: generateContent returned no image data");
+        }
+        if (imageData) {
+          console.log("*** Image generation succeeded", imageData);
+          callback(`data:image/png;base64,${imageData}`);
+        }
+      }
     }
   } catch (err) {
-    console.error("Image generation failed", err);
+    console.error("*** Image generation failed", err);
   }
 }
 
