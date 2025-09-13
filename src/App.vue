@@ -268,11 +268,7 @@ async function startChat(): Promise<void> {
             }
           })
         })
-        dc.send(
-          JSON.stringify({
-            type: 'response.create'
-          })
-        )
+        dc.send(JSON.stringify({ type: 'response.create' }));
       }
     })
 
@@ -308,8 +304,7 @@ async function startChat(): Promise<void> {
     const responseText = await response.text()
     console.log('Received answer from OpenAI', response, responseText)
 
-    const answer = { type: 'answer', sdp: responseText }
-    await pc.setRemoteDescription(answer)
+    await pc.setRemoteDescription({ type: "answer", sdp: responseText })
     chatActive.value = true
   } catch (err) {
     console.error(err)
