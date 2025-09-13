@@ -64,7 +64,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, watch } from 'vue'
 import { generateImage } from './generateImage'
 
@@ -76,23 +76,23 @@ const openaiKey = ref(localStorage.getItem(OPENAI_STORAGE_KEY) || '')
 const geminiKey = ref(localStorage.getItem(GEMINI_STORAGE_KEY) || '')
 const tempOpenaiKey = ref('')
 const tempGeminiKey = ref('')
-const audioEl = ref(null)
+const audioEl = ref<HTMLAudioElement | null>(null)
 const connecting = ref(false)
 const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
-const messages = ref([])
+const messages = ref<string[]>([])
 const currentText = ref('')
-const pendingToolArgs = {}
+const pendingToolArgs: Record<string, string> = {}
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val)
 })
 const chatActive = ref(false)
 
-let pc = null
-let localStream = null
-let remoteStream = null
+let pc: RTCPeerConnection | null = null
+let localStream: MediaStream | null = null
+let remoteStream: MediaStream | null = null
 
-function saveKeys() {
+function saveKeys(): void {
   localStorage.setItem(OPENAI_STORAGE_KEY, tempOpenaiKey.value)
   localStorage.setItem(GEMINI_STORAGE_KEY, tempGeminiKey.value)
   openaiKey.value = tempOpenaiKey.value
@@ -101,14 +101,14 @@ function saveKeys() {
   tempGeminiKey.value = ''
 }
 
-function clearKeys() {
+function clearKeys(): void {
   localStorage.removeItem(OPENAI_STORAGE_KEY)
   localStorage.removeItem(GEMINI_STORAGE_KEY)
   openaiKey.value = ''
   geminiKey.value = ''
 }
 
-async function startChat() {
+async function startChat(): Promise<void> {
   connecting.value = true
   try {
     pc = new RTCPeerConnection()
@@ -228,7 +228,7 @@ async function startChat() {
   }
 }
 
-function stopChat() {
+function stopChat(): void {
   if (pc) {
     pc.close()
     pc = null

@@ -17,7 +17,7 @@ This is a Vue 3 application called "mulmochat" that provides a voice chat interf
 ### Core Components
 
 - **App.vue** (src/App.vue): Main component handling API key management, WebRTC connection to OpenAI Realtime API, and tool calling for image generation
-- **generateImage.js** (src/generateImage.js): Image generation utility using Google Generative AI SDK
+- **generateImage.ts** (src/generateImage.ts): Image generation utility using Google Generative AI SDK
 
 ### Key Integration Points
 
