@@ -37,7 +37,8 @@
     <!-- Generated images container -->
     <div
       ref="imageContainer"
-      class="border rounded p-2 h-60 overflow-y-auto space-y-2"
+      class="border rounded p-2 overflow-y-auto space-y-2"
+      style="height: 70vh"
     >
       <div v-if="!generatedImages.length" class="text-gray-500 text-sm">Generated images will appear here...</div>
       <img
