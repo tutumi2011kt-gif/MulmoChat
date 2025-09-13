@@ -40,7 +40,7 @@
       class="border rounded p-2 overflow-y-auto space-y-2"
       style="height: 70vh"
     >
-      <div v-if="!generatedImages.length" class="text-gray-500 text-sm">Generated images will appear here...</div>
+      <div v-if="!generatedImages.length && !isGeneratingImage" class="text-gray-500 text-sm">Generated images will appear here...</div>
       <img
         v-for="(image, index) in generatedImages"
         :key="index"
@@ -48,6 +48,10 @@
         class="max-w-full h-auto rounded"
         alt="Generated image"
       />
+      <div v-if="isGeneratingImage" class="flex items-center justify-center py-4">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span class="ml-2 text-sm text-gray-600">Generating image...</span>
+      </div>
     </div>
   </div>
 </template>
@@ -63,6 +67,7 @@ const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || '')
 const messages = ref<string[]>([])
 const currentText = ref('')
 const generatedImages = ref<string[]>([])
+const isGeneratingImage = ref(false)
 const pendingToolArgs: Record<string, string> = {}
 
 watch(systemPrompt, (val) => {
@@ -98,6 +103,7 @@ async function generateImage(prompt: string, callback: (image: string) => void):
     }
   } catch (error) {
     console.error('*** Image generation failed', error)
+    isGeneratingImage.value = false
   }
 }
 
@@ -195,9 +201,11 @@ async function startChat(): Promise<void> {
         const { prompt } = args || {}
         // Allow the model to continue immediately while the image is generated
         console.log('Generating image', prompt)
+        isGeneratingImage.value = true
         generateImage(prompt, (image) => {
           console.log('Generated image', image.length)
           generatedImages.value.push(image)
+          isGeneratingImage.value = false
           nextTick(() => {
             if (imageContainer.value) {
               imageContainer.value.scrollTop = imageContainer.value.scrollHeight
