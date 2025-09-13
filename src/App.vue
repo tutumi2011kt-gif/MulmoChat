@@ -54,7 +54,7 @@
         v-if="!generatedImages.length && !isGeneratingImage"
         class="text-gray-500 text-sm"
       >
-        Generated images will appear here...
+        Feel free to ask me to generate images...
       </div>
       <img
         v-for="(image, index) in generatedImages"
