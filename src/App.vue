@@ -165,7 +165,9 @@ async function startChat(): Promise<void> {
   connecting.value = true
 
   // Call the start API endpoint to get ephemeral key
-  let ephemeralKey: string
+  const config = {
+    apiKey: undefined as string | undefined,
+  };
   try {
     const response = await fetch('/api/start', {
       method: 'POST',
@@ -179,9 +181,9 @@ async function startChat(): Promise<void> {
     }
 
     const data = await response.json()
-    ephemeralKey = data.ephemeralKey
+    config.apiKey = data.ephemeralKey
 
-    if (!ephemeralKey) {
+    if (!config.apiKey) {
       throw new Error('No ephemeral key received from server')
     }
   } catch (err) {
@@ -289,13 +291,12 @@ async function startChat(): Promise<void> {
     const offer = await pc.createOffer()
     await pc.setLocalDescription(offer)
 
-    console.log('Sending offer to OpenAI', ephemeralKey)
     const response = await fetch(
       'https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview',
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${ephemeralKey}`,
+          Authorization: `Bearer ${config.apiKey}`,
           'Content-Type': 'application/sdp'
         },
         body: offer.sdp
