@@ -1,0 +1,42 @@
+import express from 'express'
+import cors from 'cors'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import apiRoutes from './routes/api.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const app = express()
+const PORT = process.env.PORT || 3001
+
+app.use(cors())
+app.use(express.json())
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', message: 'Server is running' })
+})
+
+app.get('/api/config', (req, res) => {
+  res.json({
+    environment: process.env.NODE_ENV || 'development',
+    timestamp: new Date().toISOString()
+  })
+})
+
+// API Routes
+app.use('/api', apiRoutes)
+
+// Serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')))
+
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'))
+  })
+}
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`)
+})
