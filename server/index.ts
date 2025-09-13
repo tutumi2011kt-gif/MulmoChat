@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request, Response } from 'express'
 import cors from 'cors'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -14,11 +14,11 @@ app.use(cors())
 app.use(express.json())
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/api/health', (req: Request, res: Response) => {
   res.json({ status: 'OK', message: 'Server is running' })
 })
 
-app.get('/api/config', (req, res) => {
+app.get('/api/config', (req: Request, res: Response) => {
   res.json({
     environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString()
@@ -32,7 +32,7 @@ app.use('/api', apiRoutes)
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist')))
 
-  app.get('*', (req, res) => {
+  app.get('*', (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'))
   })
 }

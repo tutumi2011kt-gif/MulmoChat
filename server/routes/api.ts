@@ -1,18 +1,19 @@
-import express from 'express'
+import express, { Request, Response, Router } from 'express'
 import dotenv from 'dotenv'
 import { GoogleGenAI } from '@google/genai'
 dotenv.config()
 
-const router = express.Router()
+const router: Router = express.Router()
 
 // Session start endpoint
-router.post('/start', async (req, res) => {
+router.post('/start', async (req: Request, res: Response): Promise<void> => {
   console.log('session started', process.env.OPENAI_API_KEY);
 
   const openaiKey = process.env.OPENAI_API_KEY
 
   if (!openaiKey) {
-    return res.status(500).json({ error: 'OPENAI_API_KEY environment variable not set' })
+    res.status(500).json({ error: 'OPENAI_API_KEY environment variable not set' })
+    return
   }
 
   try {
@@ -55,17 +56,18 @@ router.post('/start', async (req, res) => {
       message: 'Session started',
       ephemeralKey: openaiKey, // HACK: Use the real key for now
     })
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Failed to generate ephemeral key:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({
       error: 'Failed to generate ephemeral key',
-      details: error.message
+      details: errorMessage
     })
   }
 })
 
 // Chat history endpoint
-router.get('/chat/history', (req, res) => {
+router.get('/chat/history', (req: Request, res: Response) => {
   res.json({
     messages: [
       { id: 1, text: 'Hello!', timestamp: new Date().toISOString(), type: 'user' },
@@ -75,11 +77,12 @@ router.get('/chat/history', (req, res) => {
 })
 
 // Save chat message
-router.post('/chat/message', (req, res) => {
+router.post('/chat/message', (req: Request, res: Response): void => {
   const { text, type } = req.body
 
   if (!text || !type) {
-    return res.status(400).json({ error: 'Text and type are required' })
+    res.status(400).json({ error: 'Text and type are required' })
+    return
   }
 
   const message = {
@@ -93,7 +96,7 @@ router.post('/chat/message', (req, res) => {
 })
 
 // User preferences
-router.get('/user/preferences', (req, res) => {
+router.get('/user/preferences', (req: Request, res: Response) => {
   res.json({
     theme: 'dark',
     language: 'en',
@@ -101,7 +104,7 @@ router.get('/user/preferences', (req, res) => {
   })
 })
 
-router.put('/user/preferences', (req, res) => {
+router.put('/user/preferences', (req: Request, res: Response) => {
   const { theme, language, notifications } = req.body
 
   res.json({
@@ -111,17 +114,19 @@ router.put('/user/preferences', (req, res) => {
 })
 
 // Generate image endpoint
-router.post('/generate-image', async (req, res) => {
+router.post('/generate-image', async (req: Request, res: Response): Promise<void> => {
   const { prompt } = req.body
 
   if (!prompt) {
-    return res.status(400).json({ error: 'Prompt is required' })
+    res.status(400).json({ error: 'Prompt is required' })
+    return
   }
 
   const geminiKey = process.env.GEMINI_API_KEY
 
   if (!geminiKey) {
-    return res.status(500).json({ error: 'GEMINI_API_KEY environment variable not set' })
+    res.status(500).json({ error: 'GEMINI_API_KEY environment variable not set' })
+    return
   }
 
   try {
@@ -142,20 +147,22 @@ router.post('/generate-image', async (req, res) => {
           throw new Error("ERROR: generateContent returned no image data")
         }
         console.log("*** Image generation succeeded")
-        return res.json({
+        res.json({
           success: true,
           image: `data:image/png;base64,${imageData}`
         })
+        return
       }
     }
 
     // If we get here, no image was found in the response
     throw new Error("No image data found in response")
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("*** Image generation failed", error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     res.status(500).json({
       error: 'Failed to generate image',
-      details: error.message
+      details: errorMessage
     })
   }
 })
