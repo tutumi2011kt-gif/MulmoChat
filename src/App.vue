@@ -3,16 +3,8 @@
     <h1 class="text-2xl font-bold">mulmochat</h1>
 
     <!-- API key prompt -->
-    <div v-if="!openaiKey || !geminiKey" class="space-y-2">
-      <p class="text-sm">Enter your OpenAI and Gemini API keys to start chatting.</p>
-      <div class="flex gap-2">
-        <input
-          v-model="tempOpenaiKey"
-          type="password"
-          placeholder="OpenAI sk-..."
-          class="border rounded px-2 py-1 flex-1"
-        />
-      </div>
+    <div v-if="!geminiKey" class="space-y-2">
+      <p class="text-sm">Enter your Gemini API key to start chatting.</p>
       <div class="flex gap-2">
         <input
           v-model="tempGeminiKey"
@@ -29,7 +21,7 @@
     <!-- Voice chat controls -->
     <div v-else class="space-y-2">
       <p class="text-sm">
-        Using stored API keys.
+        Using stored Gemini API key.
         <button @click="clearKeys" class="underline text-blue-600">Change</button>
       </p>
       <div
@@ -68,13 +60,10 @@
 import { ref, watch } from 'vue'
 import { generateImage } from './generateImage'
 
-const OPENAI_STORAGE_KEY = 'openai_api_key'
 const GEMINI_STORAGE_KEY = 'gemini_api_key'
 const SYSTEM_PROMPT_KEY = 'system_prompt'
 
-const openaiKey = ref(localStorage.getItem(OPENAI_STORAGE_KEY) || '')
 const geminiKey = ref(localStorage.getItem(GEMINI_STORAGE_KEY) || '')
-const tempOpenaiKey = ref('')
 const tempGeminiKey = ref('')
 const audioEl = ref<HTMLAudioElement | null>(null)
 const connecting = ref(false)
@@ -93,23 +82,46 @@ let localStream: MediaStream | null = null
 let remoteStream: MediaStream | null = null
 
 function saveKeys(): void {
-  localStorage.setItem(OPENAI_STORAGE_KEY, tempOpenaiKey.value)
   localStorage.setItem(GEMINI_STORAGE_KEY, tempGeminiKey.value)
-  openaiKey.value = tempOpenaiKey.value
   geminiKey.value = tempGeminiKey.value
-  tempOpenaiKey.value = ''
   tempGeminiKey.value = ''
 }
 
 function clearKeys(): void {
-  localStorage.removeItem(OPENAI_STORAGE_KEY)
   localStorage.removeItem(GEMINI_STORAGE_KEY)
-  openaiKey.value = ''
   geminiKey.value = ''
 }
 
 async function startChat(): Promise<void> {
   connecting.value = true
+
+  // Call the start API endpoint to get ephemeral key
+  let ephemeralKey: string
+  try {
+    const response = await fetch('/api/start', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    ephemeralKey = data.ephemeralKey
+
+    if (!ephemeralKey) {
+      throw new Error('No ephemeral key received from server')
+    }
+  } catch (err) {
+    console.error('Failed to get ephemeral key:', err)
+    alert('Failed to start session. Check console for details.')
+    connecting.value = false
+    return
+  }
+
   try {
     pc = new RTCPeerConnection()
 
@@ -210,7 +222,7 @@ async function startChat(): Promise<void> {
       {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${openaiKey.value}`,
+          Authorization: `Bearer ${ephemeralKey}`,
           'Content-Type': 'application/sdp'
         },
         body: offer.sdp
