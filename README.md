@@ -10,7 +10,7 @@ Install dependencies:
 yarn install
 ```
 
-Create .env file with following API keys:
+Create .env file with following API ke
 
 ```
 OPENAI_API_KEY=...
