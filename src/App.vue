@@ -268,36 +268,35 @@ async function startChat(): Promise<void> {
         msg.name === "generateImage"
       ) {
         const id = msg.id || msg.call_id;
-        let args = {};
         try {
           const argStr = pendingToolArgs[id] || msg.arguments || "";
-          args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
-        } catch (e) {
-          console.error("Failed to parse function call arguments", e);
-        }
-        delete pendingToolArgs[id];
-        const { prompt } = args || {};
-        // Allow the model to continue immediately while the image is generated
-        console.log("Generating image", prompt);
-        isGeneratingImage.value = true;
-        nextTick(() => {
-            if (imageContainer.value) {
-              imageContainer.value.scrollTop =
-                imageContainer.value.scrollHeight;
-            }
-          });
-        generateImage(prompt, (image) => {
-          console.log("Generated image", image.length);
-          generatedImages.value.push(image);
-          isGeneratingImage.value = false;
+          const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
+          delete pendingToolArgs[id];
+          const { prompt } = args || {};
+          // Allow the model to continue immediately while the image is generated
+          console.log("Generating image", prompt);
+          isGeneratingImage.value = true;
           nextTick(() => {
             if (imageContainer.value) {
               imageContainer.value.scrollTop =
                 imageContainer.value.scrollHeight;
             }
           });
-        });
-        dc.send(JSON.stringify({ type: "response.create" }));
+          generateImage(prompt, (image) => {
+            console.log("Generated image", image.length);
+            generatedImages.value.push(image);
+            isGeneratingImage.value = false;
+            nextTick(() => {
+              if (imageContainer.value) {
+                imageContainer.value.scrollTop =
+                  imageContainer.value.scrollHeight;
+              }
+            });
+          });
+          dc.send(JSON.stringify({ type: "response.create" }));
+        } catch (e) {
+          console.error("Failed to parse function call arguments", e);
+        }
       }
     });
 
