@@ -179,6 +179,9 @@ async function generateImage(
 }
 
 async function startChat(): Promise<void> {
+  // Gard against double start
+  if (chatActive.value || connecting.value) return;
+
   connecting.value = true;
 
   // Call the start API endpoint to get ephemeral key
