@@ -149,7 +149,7 @@ let remoteStream: MediaStream | null = null;
 
 async function generateImage(
   prompt: string,
-  callback: (image: string) => void,
+  callback: (image: string | undefined, message: string) => void,
 ): Promise<void> {
   try {
     const response = await fetch("/api/generate-image", {
@@ -168,9 +168,10 @@ async function generateImage(
 
     if (data.success && data.image) {
       console.log("*** Image generation succeeded", data.image.length);
-      callback(data.image);
+      callback(data.image, "image generation succeeded");
     } else {
-      throw new Error(data.error || "Failed to generate image");
+      console.log("*** Image generation failed");
+      callback(data.image, "image generation failed");
     }
   } catch (error) {
     console.error("*** Image generation failed", error);
@@ -285,18 +286,53 @@ async function startChat(): Promise<void> {
                 imageContainer.value.scrollHeight;
             }
           });
-          generateImage(prompt, (image) => {
+          generateImage(prompt, (image, message) => {
+            console.log("Generated image", message);
             console.log("Generated image", image.length);
-            generatedImages.value.push(image);
-            isGeneratingImage.value = false;
-            nextTick(() => {
-              if (imageContainer.value) {
-                imageContainer.value.scrollTop =
-                  imageContainer.value.scrollHeight;
-              }
-            });
+            if (image) {
+              generatedImages.value.push(image);
+              isGeneratingImage.value = false;
+              nextTick(() => {
+                if (imageContainer.value) {
+                  imageContainer.value.scrollTop =
+                    imageContainer.value.scrollHeight;
+                }
+              });
+            }
+            dc?.send(
+              JSON.stringify({
+                type: "conversation.item.create",
+                item: {
+                  type: "function_call_output",
+                  call_id: msg.call_id, // <-- from msg.call_id of the function call
+                  output: JSON.stringify({
+                    status: message,
+                  }),
+                },
+              }),
+            );
+            dc?.send(
+              JSON.stringify({
+                type: "response.create",
+                response: {
+                  instructions: image
+                    ? "Acknowledge that the image was generated and has been presented."
+                    : "Acknowledge that the image generation failed.",
+                  // e.g., the model might say: "Your image is ready."
+                },
+              }),
+            );
           });
-          dc.send(JSON.stringify({ type: "response.create" }));
+          dc.send(
+            JSON.stringify({
+              type: "response.create",
+              response: {
+                instructions:
+                  "Tell the user to wait for the image to be generated.",
+                // e.g., the model might say: "Your image is ready."
+              },
+            }),
+          );
         } catch (e) {
           console.error("Failed to parse function call arguments", e);
         }
