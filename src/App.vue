@@ -280,6 +280,12 @@ async function startChat(): Promise<void> {
         // Allow the model to continue immediately while the image is generated
         console.log("Generating image", prompt);
         isGeneratingImage.value = true;
+        nextTick(() => {
+            if (imageContainer.value) {
+              imageContainer.value.scrollTop =
+                imageContainer.value.scrollHeight;
+            }
+          });
         generateImage(prompt, (image) => {
           console.log("Generated image", image.length);
           generatedImages.value.push(image);
