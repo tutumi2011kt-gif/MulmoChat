@@ -20,34 +20,21 @@
     <!-- Main content area with sidebar -->
     <div class="flex space-x-4">
       <!-- Sidebar -->
-      <div class="w-[30%] bg-gray-50 border rounded p-4">
-        <div class="text-sm font-medium text-gray-700 mb-2">Sidebar</div>
-        <div class="text-gray-500 text-sm">Content goes here...</div>
-      </div>
-
-      <!-- Main content -->
-      <div class="flex-1 space-y-4">
+      <div class="w-[30%] bg-gray-50 border rounded p-4 space-y-4">
         <!-- Voice chat controls -->
         <div class="space-y-2">
-          <div
-            v-if="messages.length || currentText"
-            class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm"
-          >
-            <div v-for="(m, i) in messages" :key="i">{{ m }}</div>
-            <div v-if="currentText">{{ currentText }}</div>
-          </div>
           <button
             v-if="!chatActive"
             @click="startChat"
             :disabled="connecting"
-            class="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
+            class="w-full px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
           >
             {{ connecting ? "Connecting..." : "Start Voice Chat" }}
           </button>
           <button
             v-else
             @click="stopChat"
-            class="px-4 py-2 bg-red-600 text-white rounded"
+            class="w-full px-4 py-2 bg-red-600 text-white rounded"
           >
             Stop Voice Chat
           </button>
@@ -55,33 +42,48 @@
         </div>
 
         <!-- Generated images container -->
-        <div
-          ref="imageContainer"
-          class="border rounded p-2 overflow-y-auto space-y-2"
-          style="height: 70vh"
-        >
+        <div>
+          <div class="text-sm font-medium text-gray-700 mb-2">Generated Images</div>
           <div
-            v-if="!generatedImages.length && !isGeneratingImage"
-            class="text-gray-500 text-sm"
-          >
-            Feel free to ask me to generate images...
-          </div>
-          <img
-            v-for="(image, index) in generatedImages"
-            :key="index"
-            :src="image"
-            class="max-w-full h-auto rounded"
-            alt="Generated image"
-          />
-          <div
-            v-if="isGeneratingImage"
-            class="flex items-center justify-center py-4"
+            ref="imageContainer"
+            class="border rounded p-2 overflow-y-auto space-y-2"
+            style="height: 60vh"
           >
             <div
-              class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
-            ></div>
-            <span class="ml-2 text-sm text-gray-600">Generating image...</span>
+              v-if="!generatedImages.length && !isGeneratingImage"
+              class="text-gray-500 text-sm"
+            >
+              Feel free to ask me to generate images...
+            </div>
+            <img
+              v-for="(image, index) in generatedImages"
+              :key="index"
+              :src="image"
+              class="max-w-full h-auto rounded"
+              alt="Generated image"
+            />
+            <div
+              v-if="isGeneratingImage"
+              class="flex items-center justify-center py-4"
+            >
+              <div
+                class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
+              ></div>
+              <span class="ml-2 text-sm text-gray-600">Generating image...</span>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="flex-1 space-y-4">
+        <!-- Voice chat text display -->
+        <div
+          v-if="messages.length || currentText"
+          class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm"
+        >
+          <div v-for="(m, i) in messages" :key="i">{{ m }}</div>
+          <div v-if="currentText">{{ currentText }}</div>
         </div>
       </div>
     </div>
