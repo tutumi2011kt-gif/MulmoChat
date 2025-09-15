@@ -57,8 +57,10 @@
               v-for="(image, index) in generatedImages"
               :key="index"
               :src="image"
-              class="max-w-full h-auto rounded"
+              class="max-w-full h-auto rounded cursor-pointer hover:opacity-75 transition-opacity"
+              :class="{ 'ring-2 ring-blue-500': selectedImageIndex === index }"
               alt="Generated image"
+              @click="selectedImageIndex = index"
             />
             <div
               v-if="isGeneratingImage"
@@ -88,7 +90,7 @@
         <div class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50">
           <img
             v-if="generatedImages.length > 0"
-            :src="generatedImages[generatedImages.length - 1]"
+            :src="selectedImageIndex !== null ? generatedImages[selectedImageIndex] : generatedImages[generatedImages.length - 1]"
             class="max-w-full max-h-full object-contain rounded"
             alt="Current generated image"
           />
@@ -165,6 +167,7 @@ const generatedImages = ref<string[]>([]);
 const isGeneratingImage = ref(false);
 const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
+const selectedImageIndex = ref<number | null>(null);
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val);
@@ -201,7 +204,7 @@ async function generateImage(
       callback(data.image, "image generation succeeded");
     } else {
       console.log("*** Image generation failed");
-      callback(data.image, "image generation failed");
+      callback(undefined, data.message || "image generation failed");
     }
   } catch (error) {
     console.error("*** Image generation failed", error);
@@ -322,6 +325,7 @@ async function startChat(): Promise<void> {
             if (image) {
               console.log("Generated image", image.length);
               generatedImages.value.push(image);
+              selectedImageIndex.value = generatedImages.value.length - 1;
               nextTick(() => {
                 if (imageContainer.value) {
                   imageContainer.value.scrollTop =

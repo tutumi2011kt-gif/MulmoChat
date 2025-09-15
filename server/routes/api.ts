@@ -113,14 +113,19 @@ router.post(
           res.json({
             success: true,
             image: `data:image/png;base64,${imageData}`,
+            message: "image generation succeeded",
           });
           return;
         }
       }
 
       // If we get here, no image was found in the response
-      throw new Error("No image data found in response");
-    } catch (error: unknown) {
+      res.json({
+        success: false,
+        message: "no image data found in response",
+      });
+      return;
+} catch (error: unknown) {
       console.error("*** Image generation failed", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
