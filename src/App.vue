@@ -18,11 +18,11 @@
     </div>
 
     <!-- Main content area with sidebar -->
-    <div class="flex space-x-4">
+    <div class="flex space-x-4" style="height: calc(100vh - 80px)">
       <!-- Sidebar -->
-      <div class="w-[30%] bg-gray-50 border rounded p-4 space-y-4">
+      <div class="w-[30%] bg-gray-50 border rounded p-4 flex flex-col space-y-4">
         <!-- Voice chat controls -->
-        <div class="space-y-2">
+        <div class="space-y-2 flex-shrink-0">
           <button
             v-if="!chatActive"
             @click="startChat"
@@ -42,12 +42,10 @@
         </div>
 
         <!-- Generated images container -->
-        <div>
-          <div class="text-sm font-medium text-gray-700 mb-2">Generated Images</div>
+        <div class="flex-1 flex flex-col min-h-0">
           <div
             ref="imageContainer"
-            class="border rounded p-2 overflow-y-auto space-y-2"
-            style="height: 60vh"
+            class="border rounded p-2 overflow-y-auto space-y-2 flex-1"
           >
             <div
               v-if="!generatedImages.length && !isGeneratingImage"
@@ -76,14 +74,30 @@
       </div>
 
       <!-- Main content -->
-      <div class="flex-1 space-y-4">
+      <div class="flex-1 flex flex-col space-y-4">
         <!-- Voice chat text display -->
         <div
           v-if="messages.length || currentText"
-          class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm"
+          class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm flex-shrink-0"
         >
           <div v-for="(m, i) in messages" :key="i">{{ m }}</div>
           <div v-if="currentText">{{ currentText }}</div>
+        </div>
+
+        <!-- Main canvas area for current image -->
+        <div class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50">
+          <img
+            v-if="generatedImages.length > 0"
+            :src="generatedImages[generatedImages.length - 1]"
+            class="max-w-full max-h-full object-contain rounded"
+            alt="Current generated image"
+          />
+          <div
+            v-else
+            class="text-gray-400 text-lg"
+          >
+            Canvas
+          </div>
         </div>
       </div>
     </div>
