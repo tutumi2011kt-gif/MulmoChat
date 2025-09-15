@@ -143,9 +143,11 @@ watch(systemPrompt, (val) => {
 });
 const chatActive = ref(false);
 
-let pc: RTCPeerConnection | null = null;
-let localStream: MediaStream | null = null;
-let remoteStream: MediaStream | null = null;
+const webrtc = {
+  pc: null as RTCPeerConnection | null,
+  localStream: null as MediaStream | null,
+  remoteStream: null as MediaStream | null,
+};
 
 async function generateImage(
   prompt: string,
@@ -215,10 +217,10 @@ async function startChat(): Promise<void> {
   }
 
   try {
-    pc = new RTCPeerConnection();
+    webrtc.pc = new RTCPeerConnection();
 
     // Data channel for model events
-    const dc = pc.createDataChannel("oai-events");
+    const dc = webrtc.pc.createDataChannel("oai-events");
     dc.addEventListener("open", () => {
       dc.send(
         JSON.stringify({
@@ -340,21 +342,21 @@ async function startChat(): Promise<void> {
     });
 
     // Play remote audio
-    remoteStream = new MediaStream();
-    pc.ontrack = (event) => {
-      remoteStream.addTrack(event.track);
+    webrtc.remoteStream = new MediaStream();
+    webrtc.pc.ontrack = (event) => {
+      webrtc.remoteStream.addTrack(event.track);
     };
     if (audioEl.value) {
-      audioEl.value.srcObject = remoteStream;
+      audioEl.value.srcObject = webrtc.remoteStream;
     }
 
     // Send microphone audio
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+    webrtc.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    webrtc.localStream.getTracks().forEach((track) => webrtc.pc.addTrack(track, webrtc.localStream));
 
     // Create and send offer SDP
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
+    const offer = await webrtc.pc.createOffer();
+    await webrtc.pc.setLocalDescription(offer);
 
     const response = await fetch(
       "https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview",
@@ -370,7 +372,7 @@ async function startChat(): Promise<void> {
     const responseText = await response.text();
     console.log("Received answer from OpenAI", response, responseText);
 
-    await pc.setRemoteDescription({ type: "answer", sdp: responseText });
+    await webrtc.pc.setRemoteDescription({ type: "answer", sdp: responseText });
     chatActive.value = true;
   } catch (err) {
     console.error(err);
@@ -381,17 +383,17 @@ async function startChat(): Promise<void> {
 }
 
 function stopChat(): void {
-  if (pc) {
-    pc.close();
-    pc = null;
+  if (webrtc.pc) {
+    webrtc.pc.close();
+    webrtc.pc = null;
   }
-  if (localStream) {
-    localStream.getTracks().forEach((track) => track.stop());
-    localStream = null;
+  if (webrtc.localStream) {
+    webrtc.localStream.getTracks().forEach((track) => track.stop());
+    webrtc.localStream = null;
   }
-  if (remoteStream) {
-    remoteStream.getTracks().forEach((track) => track.stop());
-    remoteStream = null;
+  if (webrtc.remoteStream) {
+    webrtc.remoteStream.getTracks().forEach((track) => track.stop());
+    webrtc.remoteStream = null;
   }
   if (audioEl.value) {
     audioEl.value.srcObject = null;
