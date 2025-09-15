@@ -287,11 +287,11 @@ async function startChat(): Promise<void> {
             }
           });
           generateImage(prompt, (image, message) => {
+            isGeneratingImage.value = false;
             console.log("Generated image", message);
-            console.log("Generated image", image.length);
             if (image) {
+              console.log("Generated image", image.length);
               generatedImages.value.push(image);
-              isGeneratingImage.value = false;
               nextTick(() => {
                 if (imageContainer.value) {
                   imageContainer.value.scrollTop =
