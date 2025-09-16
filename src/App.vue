@@ -356,7 +356,7 @@ async function startChat(): Promise<void> {
     await webrtc.pc.setLocalDescription(offer);
 
     const response = await fetch(
-      "https://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview",
+      "https://api.openai.com/v1/realtime?model=gpt-realtime", // gpt-4o-realtime-preview is available.
       {
         method: "POST",
         headers: {
