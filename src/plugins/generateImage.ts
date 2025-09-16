@@ -26,7 +26,7 @@ async function generateImage(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ prompt, images: context.images }),
     });
 
     if (!response.ok) {
