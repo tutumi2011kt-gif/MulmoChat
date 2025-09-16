@@ -1,4 +1,6 @@
-export const toolDefinition = {
+import { Plugin } from "./type";
+
+const toolDefinition = {
   type: "function" as const,
   name: "generateImage",
   description: "Generate an image from a text prompt.",
@@ -14,7 +16,7 @@ export const toolDefinition = {
   },
 };
 
-export async function generateImage(
+async function generateImage(
   prompt: string,
 ): Promise<{ image?: string; message: string }> {
   try {
@@ -44,3 +46,8 @@ export async function generateImage(
     return { message: "image generation failed" };
   }
 }
+
+export const plugin: Plugin = {
+  toolDefinition,
+  generateImage,
+};

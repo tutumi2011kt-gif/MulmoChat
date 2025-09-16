@@ -160,7 +160,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
-import { toolDefinition, generateImage } from "./plugins/generateImage";
+import { plugin } from "./plugins/generateImage";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -242,7 +242,7 @@ async function startChat(): Promise<void> {
             instructions: systemPrompt.value,
             modalities: ["text", "audio"],
             voice: "shimmer",
-            tools: [toolDefinition],
+            tools: [plugin.toolDefinition],
           },
         }),
       );
@@ -279,7 +279,7 @@ async function startChat(): Promise<void> {
           console.log("Generating image", prompt);
           isGeneratingImage.value = true;
           scrollToBottomOfImageContainer();
-          const promise = generateImage(prompt);
+          const promise = plugin.generateImage(prompt);
           // Allow the model to continue immediately while the image is generated
           dc.send(
             JSON.stringify({
