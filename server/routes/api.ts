@@ -106,16 +106,16 @@ router.post(
           console.log("*** Gemini image generation response:", part.text);
         } else if (part.inlineData) {
           const imageData = part.inlineData.data;
-          if (!imageData) {
-            throw new Error("ERROR: generateContent returned no image data");
+          if (imageData) {
+            console.log("*** Image generation succeeded");
+            res.json({
+              success: true,
+              image: `data:image/png;base64,${imageData}`,
+              message: "image generation succeeded",
+            });
+            return;
           }
-          console.log("*** Image generation succeeded");
-          res.json({
-            success: true,
-            image: `data:image/png;base64,${imageData}`,
-            message: "image generation succeeded",
-          });
-          return;
+          console.log("*** the part has inlineData, but no image data", part);
         }
       }
 

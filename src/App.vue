@@ -161,7 +161,7 @@
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
 import {
-  generateImageToolDefinition,
+  toolDefinition,
   generateImage,
 } from "./plugins/generateImage";
 
@@ -245,7 +245,7 @@ async function startChat(): Promise<void> {
             instructions: systemPrompt.value,
             modalities: ["text", "audio"],
             voice: "shimmer",
-            tools: [generateImageToolDefinition],
+            tools: [toolDefinition],
           },
         }),
       );

@@ -1,4 +1,4 @@
-export const generateImageToolDefinition = {
+export const toolDefinition = {
   type: "function" as const,
   name: "generateImage",
   description: "Generate an image from a text prompt.",
