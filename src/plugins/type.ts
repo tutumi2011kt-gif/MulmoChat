@@ -17,7 +17,10 @@ export interface Plugin {
       required: string[];
     };
   };
-  execute: (context: PluginContext, prompt: string) => Promise<{ image?: string; message: string }>;
+  execute: (
+    context: PluginContext,
+    prompt: string,
+  ) => Promise<{ imageData?: string; message: string }>;
 }
 
 export const pluginTools = [GenerateImagePlugin].map(
@@ -32,7 +35,11 @@ const plugins = [GenerateImagePlugin].reduce(
   {} as Record<string, Plugin>,
 );
 
-export const pluginExecute = (context: PluginContext, name: string, prompt: string) => {
+export const pluginExecute = (
+  context: PluginContext,
+  name: string,
+  prompt: string,
+) => {
   const plugin = plugins[name];
   if (!plugin) {
     throw new Error(`Plugin ${name} not found`);

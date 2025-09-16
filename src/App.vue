@@ -58,7 +58,7 @@
             <img
               v-for="(image, index) in generatedImages"
               :key="index"
-              :src="image"
+              :src="`data:image/png;base64,${image}`"
               class="max-w-full h-auto rounded cursor-pointer hover:opacity-75 transition-opacity"
               :class="{ 'ring-2 ring-blue-500': selectedImageIndex === index }"
               alt="Generated image"
@@ -96,11 +96,11 @@
         >
           <img
             v-if="generatedImages.length > 0"
-            :src="
+            :src="`data:image/png;base64,${
               selectedImageIndex !== null
                 ? generatedImages[selectedImageIndex]
                 : generatedImages[generatedImages.length - 1]
-            "
+            }`"
             class="max-w-full max-h-full object-contain rounded"
             alt="Current generated image"
           />
@@ -295,9 +295,9 @@ async function startChat(): Promise<void> {
           const result = await promise;
           isGeneratingImage.value = false;
           console.log("Generated image", result.message);
-          if (result.image) {
-            console.log("Generated image", result.image.length);
-            generatedImages.value.push(result.image);
+          if (result.imageData) {
+            console.log("Generated image", result.imageData.length);
+            generatedImages.value.push(result.imageData);
             selectedImageIndex.value = generatedImages.value.length - 1;
             scrollToBottomOfImageContainer();
           }
@@ -317,7 +317,7 @@ async function startChat(): Promise<void> {
             JSON.stringify({
               type: "response.create",
               response: {
-                instructions: result.image
+                instructions: result.imageData
                   ? "Acknowledge that the image was generated and has been already presented to the user."
                   : "Acknowledge that the image generation failed.",
               },

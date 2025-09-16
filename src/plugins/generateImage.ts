@@ -19,7 +19,7 @@ const toolDefinition = {
 async function generateImage(
   context: PluginContext,
   prompt: string,
-): Promise<{ image?: string; message: string }> {
+): Promise<{ imageData?: string; message: string }> {
   try {
     const response = await fetch("/api/generate-image", {
       method: "POST",
@@ -35,9 +35,12 @@ async function generateImage(
 
     const data = await response.json();
 
-    if (data.success && data.image) {
-      console.log("*** Image generation succeeded", data.image.length);
-      return { image: data.image, message: "image generation succeeded" };
+    if (data.success && data.imageData) {
+      console.log("*** Image generation succeeded", data.imageData.length);
+      return {
+        imageData: data.imageData,
+        message: "image generation succeeded",
+      };
     } else {
       console.log("*** Image generation failed");
       return { message: data.message || "image generation failed" };

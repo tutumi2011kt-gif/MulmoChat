@@ -76,7 +76,7 @@ router.get("/start", async (req: Request, res: Response): Promise<void> => {
 router.post(
   "/generate-image",
   async (req: Request, res: Response): Promise<void> => {
-    const { prompt } = req.body;
+    const { prompt, images } = req.body;
 
     if (!prompt) {
       res.status(400).json({ error: "Prompt is required" });
@@ -95,17 +95,23 @@ router.post(
     try {
       const ai = new GoogleGenAI({ apiKey: geminiKey });
       const model = "gemini-2.5-flash-image-preview";
-      const contents = [{ text: prompt }];
+      const contents: {
+        text?: string;
+        inlineData?: { mimeType: string; data: string };
+      }[] = [{ text: prompt }];
+      for (const image of images ?? []) {
+        contents.push({ inlineData: { mimeType: "image/png", data: image } });
+      }
       const response = await ai.models.generateContent({ model, contents });
       const parts = response.candidates?.[0]?.content?.parts ?? [];
       const returnValue: {
         success: boolean;
-        message?: string;
-        image?: string;
+        message: string | undefined;
+        imageData: string | undefined;
       } = {
         success: false,
         message: undefined,
-        image: undefined,
+        imageData: undefined,
       };
 
       console.log(
@@ -124,14 +130,14 @@ router.post(
           if (imageData) {
             console.log("*** Image generation succeeded");
             returnValue.success = true;
-            returnValue.image = `data:image/png;base64,${imageData}`;
+            returnValue.imageData = imageData;
           } else {
             console.log("*** the part has inlineData, but no image data", part);
           }
         }
       }
       if (!returnValue.message) {
-        returnValue.message = returnValue.image
+        returnValue.message = returnValue.imageData
           ? "image generation succeeded"
           : "no image data found in response";
       }
