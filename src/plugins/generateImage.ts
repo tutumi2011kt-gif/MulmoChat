@@ -1,4 +1,4 @@
-import { Plugin } from "./type";
+import { Plugin, PluginContext } from "./type";
 
 const toolDefinition = {
   type: "function" as const,
@@ -17,6 +17,7 @@ const toolDefinition = {
 };
 
 async function generateImage(
+  context: PluginContext,
   prompt: string,
 ): Promise<{ image?: string; message: string }> {
   try {

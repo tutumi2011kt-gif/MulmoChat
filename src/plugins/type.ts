@@ -1,5 +1,9 @@
 import * as GenerateImagePlugin from "./generateImage";
 
+export interface PluginContext {
+  images: string[];
+}
+
 export interface Plugin {
   toolDefinition: {
     type: "function";
@@ -13,7 +17,7 @@ export interface Plugin {
       required: string[];
     };
   };
-  execute: (prompt: string) => Promise<{ image?: string; message: string }>;
+  execute: (context: PluginContext, prompt: string) => Promise<{ image?: string; message: string }>;
 }
 
 export const pluginTools = [GenerateImagePlugin].map(
@@ -28,10 +32,10 @@ const plugins = [GenerateImagePlugin].reduce(
   {} as Record<string, Plugin>,
 );
 
-export const pluginExecute = (name: string, prompt: string) => {
+export const pluginExecute = (context: PluginContext, name: string, prompt: string) => {
   const plugin = plugins[name];
   if (!plugin) {
     throw new Error(`Plugin ${name} not found`);
   }
-  return plugin.execute(prompt);
+  return plugin.execute(context, prompt);
 };
