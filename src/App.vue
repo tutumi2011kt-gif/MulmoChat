@@ -268,7 +268,7 @@ async function startChat(): Promise<void> {
       }
       if (
         msg.type === "response.function_call_arguments.done" &&
-        msg.name === "generateImage"
+        msg.name === plugin.toolDefinition.name
       ) {
         const id = msg.id || msg.call_id;
         try {
@@ -279,7 +279,7 @@ async function startChat(): Promise<void> {
           console.log("Generating image", prompt);
           isGeneratingImage.value = true;
           scrollToBottomOfImageContainer();
-          const promise = plugin.generateImage(prompt);
+          const promise = plugin.execute(prompt);
           // Allow the model to continue immediately while the image is generated
           dc.send(
             JSON.stringify({

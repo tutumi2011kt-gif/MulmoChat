@@ -49,5 +49,5 @@ async function generateImage(
 
 export const plugin: Plugin = {
   toolDefinition,
-  generateImage,
+  execute: generateImage,
 };

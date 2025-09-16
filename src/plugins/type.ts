@@ -11,7 +11,7 @@ export interface Plugin {
       required: string[];
     };
   };
-  generateImage: (
+  execute: (
     prompt: string,
   ) => Promise<{ image?: string; message: string }>;
 }
