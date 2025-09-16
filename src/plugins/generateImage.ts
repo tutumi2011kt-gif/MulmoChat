@@ -14,7 +14,9 @@ export const generateImageToolDefinition = {
   },
 };
 
-export async function generateImage(prompt: string): Promise<{ image?: string; message: string }> {
+export async function generateImage(
+  prompt: string,
+): Promise<{ image?: string; message: string }> {
   try {
     const response = await fetch("/api/generate-image", {
       method: "POST",

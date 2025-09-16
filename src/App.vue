@@ -20,7 +20,9 @@
     <!-- Main content area with sidebar -->
     <div class="flex space-x-4" style="height: calc(100vh - 80px)">
       <!-- Sidebar -->
-      <div class="w-[30%] bg-gray-50 border rounded p-4 flex flex-col space-y-4">
+      <div
+        class="w-[30%] bg-gray-50 border rounded p-4 flex flex-col space-y-4"
+      >
         <!-- Voice chat controls -->
         <div class="space-y-2 flex-shrink-0">
           <button
@@ -69,7 +71,9 @@
               <div
                 class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
               ></div>
-              <span class="ml-2 text-sm text-gray-600">Generating image...</span>
+              <span class="ml-2 text-sm text-gray-600"
+                >Generating image...</span
+              >
             </div>
           </div>
         </div>
@@ -87,19 +91,20 @@
         </div>
 
         <!-- Main canvas area for current image -->
-        <div class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50">
+        <div
+          class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50"
+        >
           <img
             v-if="generatedImages.length > 0"
-            :src="selectedImageIndex !== null ? generatedImages[selectedImageIndex] : generatedImages[generatedImages.length - 1]"
+            :src="
+              selectedImageIndex !== null
+                ? generatedImages[selectedImageIndex]
+                : generatedImages[generatedImages.length - 1]
+            "
             class="max-w-full max-h-full object-contain rounded"
             alt="Current generated image"
           />
-          <div
-            v-else
-            class="text-gray-400 text-lg"
-          >
-            Canvas
-          </div>
+          <div v-else class="text-gray-400 text-lg">Canvas</div>
         </div>
       </div>
     </div>
@@ -155,7 +160,10 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
-import { generateImageToolDefinition, generateImage } from "./plugins/generateImage";
+import {
+  generateImageToolDefinition,
+  generateImage,
+} from "./plugins/generateImage";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -180,7 +188,6 @@ const webrtc = {
   localStream: null as MediaStream | null,
   remoteStream: null as MediaStream | null,
 };
-
 
 async function startChat(): Promise<void> {
   // Gard against double start
@@ -235,7 +242,7 @@ async function startChat(): Promise<void> {
         }),
       );
     });
-    dc.addEventListener("message", (event) => {
+    dc.addEventListener("message", async (event) => {
       const msg = JSON.parse(event.data);
       console.log("Message", event.data.length, msg.type);
       if (msg.type === "error") {
@@ -264,7 +271,6 @@ async function startChat(): Promise<void> {
           const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
           delete pendingToolArgs[id];
           const { prompt } = args || {};
-          // Allow the model to continue immediately while the image is generated
           console.log("Generating image", prompt);
           isGeneratingImage.value = true;
           nextTick(() => {
@@ -273,43 +279,8 @@ async function startChat(): Promise<void> {
                 imageContainer.value.scrollHeight;
             }
           });
-          generateImage(prompt).then((result) => {
-            isGeneratingImage.value = false;
-            console.log("Generated image", result.message);
-            if (result.image) {
-              console.log("Generated image", result.image.length);
-              generatedImages.value.push(result.image);
-              selectedImageIndex.value = generatedImages.value.length - 1;
-              nextTick(() => {
-                if (imageContainer.value) {
-                  imageContainer.value.scrollTop =
-                    imageContainer.value.scrollHeight;
-                }
-              });
-            }
-            dc?.send(
-              JSON.stringify({
-                type: "conversation.item.create",
-                item: {
-                  type: "function_call_output",
-                  call_id: msg.call_id,
-                  output: JSON.stringify({
-                    status: result.message,
-                  }),
-                },
-              }),
-            );
-            dc?.send(
-              JSON.stringify({
-                type: "response.create",
-                response: {
-                  instructions: result.image
-                    ? "Acknowledge that the image was generated and has been presented."
-                    : "Acknowledge that the image generation failed.",
-                },
-              }),
-            );
-          });
+          const promise = generateImage(prompt);
+          // Allow the model to continue immediately while the image is generated
           dc.send(
             JSON.stringify({
               type: "response.create",
@@ -317,6 +288,43 @@ async function startChat(): Promise<void> {
                 instructions:
                   "Tell the user to wait for the image to be generated.",
                 // e.g., the model might say: "Your image is ready."
+              },
+            }),
+          );
+
+          const result = await promise;
+          isGeneratingImage.value = false;
+          console.log("Generated image", result.message);
+          if (result.image) {
+            console.log("Generated image", result.image.length);
+            generatedImages.value.push(result.image);
+            selectedImageIndex.value = generatedImages.value.length - 1;
+            nextTick(() => {
+              if (imageContainer.value) {
+                imageContainer.value.scrollTop =
+                  imageContainer.value.scrollHeight;
+              }
+            });
+          }
+          dc?.send(
+            JSON.stringify({
+              type: "conversation.item.create",
+              item: {
+                type: "function_call_output",
+                call_id: msg.call_id,
+                output: JSON.stringify({
+                  status: result.message,
+                }),
+              },
+            }),
+          );
+          dc?.send(
+            JSON.stringify({
+              type: "response.create",
+              response: {
+                instructions: result.image
+                  ? "Acknowledge that the image was generated and has been presented."
+                  : "Acknowledge that the image generation failed.",
               },
             }),
           );
@@ -336,8 +344,12 @@ async function startChat(): Promise<void> {
     }
 
     // Send microphone audio
-    webrtc.localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    webrtc.localStream.getTracks().forEach((track) => webrtc.pc.addTrack(track, webrtc.localStream));
+    webrtc.localStream = await navigator.mediaDevices.getUserMedia({
+      audio: true,
+    });
+    webrtc.localStream
+      .getTracks()
+      .forEach((track) => webrtc.pc.addTrack(track, webrtc.localStream));
 
     // Create and send offer SDP
     const offer = await webrtc.pc.createOffer();

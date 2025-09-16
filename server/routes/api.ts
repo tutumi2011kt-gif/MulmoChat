@@ -125,7 +125,7 @@ router.post(
         message: "no image data found in response",
       });
       return;
-} catch (error: unknown) {
+    } catch (error: unknown) {
       console.error("*** Image generation failed", error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
