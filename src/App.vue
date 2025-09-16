@@ -189,6 +189,14 @@ const webrtc = {
   remoteStream: null as MediaStream | null,
 };
 
+function scrollToBottomOfImageContainer(): void {
+  nextTick(() => {
+    if (imageContainer.value) {
+      imageContainer.value.scrollTop = imageContainer.value.scrollHeight;
+    }
+  });
+}
+
 async function startChat(): Promise<void> {
   // Gard against double start
   if (chatActive.value || connecting.value) return;
@@ -273,12 +281,7 @@ async function startChat(): Promise<void> {
           const { prompt } = args || {};
           console.log("Generating image", prompt);
           isGeneratingImage.value = true;
-          nextTick(() => {
-            if (imageContainer.value) {
-              imageContainer.value.scrollTop =
-                imageContainer.value.scrollHeight;
-            }
-          });
+          scrollToBottomOfImageContainer();
           const promise = generateImage(prompt);
           // Allow the model to continue immediately while the image is generated
           dc.send(
@@ -299,12 +302,7 @@ async function startChat(): Promise<void> {
             console.log("Generated image", result.image.length);
             generatedImages.value.push(result.image);
             selectedImageIndex.value = generatedImages.value.length - 1;
-            nextTick(() => {
-              if (imageContainer.value) {
-                imageContainer.value.scrollTop =
-                  imageContainer.value.scrollHeight;
-              }
-            });
+            scrollToBottomOfImageContainer();
           }
           dc?.send(
             JSON.stringify({
