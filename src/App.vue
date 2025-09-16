@@ -160,7 +160,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
-import { tools, pluginExecute } from "./plugins/type";
+import { pluginTools, pluginExecute } from "./plugins/type";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -242,7 +242,7 @@ async function startChat(): Promise<void> {
             instructions: systemPrompt.value,
             modalities: ["text", "audio"],
             voice: "shimmer",
-            tools: tools,
+            tools: pluginTools,
           },
         }),
       );
@@ -266,9 +266,7 @@ async function startChat(): Promise<void> {
         const id = msg.id || msg.call_id;
         pendingToolArgs[id] = (pendingToolArgs[id] || "") + msg.delta;
       }
-      if (
-        msg.type === "response.function_call_arguments.done"
-      ) {
+      if (msg.type === "response.function_call_arguments.done") {
         const id = msg.id || msg.call_id;
         try {
           const argStr = pendingToolArgs[id] || msg.arguments || "";

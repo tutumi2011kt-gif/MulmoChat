@@ -13,17 +13,20 @@ export interface Plugin {
       required: string[];
     };
   };
-  execute: (
-    prompt: string,
-  ) => Promise<{ image?: string; message: string }>;
+  execute: (prompt: string) => Promise<{ image?: string; message: string }>;
 }
 
-export const tools = [GenerateImagePlugin].map((plugin) => plugin.plugin.toolDefinition);
+export const pluginTools = [GenerateImagePlugin].map(
+  (plugin) => plugin.plugin.toolDefinition,
+);
 
-const plugins = [GenerateImagePlugin].reduce((acc, plugin) => {
-  acc[plugin.plugin.toolDefinition.name] = plugin.plugin;
-  return acc;
-}, {} as Record<string, Plugin>);
+const plugins = [GenerateImagePlugin].reduce(
+  (acc, plugin) => {
+    acc[plugin.plugin.toolDefinition.name] = plugin.plugin;
+    return acc;
+  },
+  {} as Record<string, Plugin>,
+);
 
 export const pluginExecute = (name: string, prompt: string) => {
   const plugin = plugins[name];
