@@ -245,7 +245,7 @@ async function startChat(): Promise<void> {
     });
     dc.addEventListener("message", async (event) => {
       const msg = JSON.parse(event.data);
-      console.log("Message", event.data.length, msg.type);
+      // console.log("Message", event.data.length, msg.type);
       if (msg.type === "error") {
         console.error("Error", msg.error);
       }
@@ -275,7 +275,10 @@ async function startChat(): Promise<void> {
           const context: PluginContext = {
             images: [],
           };
-          if (generatedImages.value.length > 0 && selectedImageIndex.value !== null) {
+          if (
+            generatedImages.value.length > 0 &&
+            selectedImageIndex.value !== null
+          ) {
             context.images = [generatedImages.value[selectedImageIndex.value]];
           }
           const promise = pluginExecute(context, msg.name, prompt);

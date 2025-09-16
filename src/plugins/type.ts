@@ -1,4 +1,5 @@
 import * as GenerateImagePlugin from "./generateImage";
+import * as EditImagePlugin from "./editImage";
 
 export interface PluginContext {
   images: string[];
@@ -23,11 +24,13 @@ export interface Plugin {
   ) => Promise<{ imageData?: string; message: string }>;
 }
 
-export const pluginTools = [GenerateImagePlugin].map(
+const pluginList = [GenerateImagePlugin, EditImagePlugin];
+
+export const pluginTools = pluginList.map(
   (plugin) => plugin.plugin.toolDefinition,
 );
 
-const plugins = [GenerateImagePlugin].reduce(
+const plugins = pluginList.reduce(
   (acc, plugin) => {
     acc[plugin.plugin.toolDefinition.name] = plugin.plugin;
     return acc;
@@ -40,6 +43,7 @@ export const pluginExecute = (
   name: string,
   prompt: string,
 ) => {
+  console.log("******** Plugin execute", name, prompt);
   const plugin = plugins[name];
   if (!plugin) {
     throw new Error(`Plugin ${name} not found`);

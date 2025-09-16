@@ -16,9 +16,10 @@ const toolDefinition = {
   },
 };
 
-async function generateImage(
+export async function generateImageCommon(
   context: PluginContext,
   prompt: string,
+  editImage: boolean,
 ): Promise<{ imageData?: string; message: string }> {
   try {
     const response = await fetch("/api/generate-image", {
@@ -26,7 +27,7 @@ async function generateImage(
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt, images: context.images }),
+      body: JSON.stringify({ prompt, images: editImage ? context.images : [] }),
     });
 
     if (!response.ok) {
@@ -50,6 +51,14 @@ async function generateImage(
     return { message: "image generation failed" };
   }
 }
+
+const generateImage = async (
+  context: PluginContext,
+  prompt: string,
+): Promise<{ imageData?: string; message: string }> => {
+  console.log("******** Generate image", prompt);
+  return generateImageCommon(context, prompt, false);
+};
 
 export const plugin: Plugin = {
   toolDefinition,
