@@ -155,6 +155,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
+import { generateImageToolDefinition, generateImage } from "./plugins/generateImage";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -180,37 +181,6 @@ const webrtc = {
   remoteStream: null as MediaStream | null,
 };
 
-async function generateImage(
-  prompt: string,
-  callback: (image: string | undefined, message: string) => void,
-): Promise<void> {
-  try {
-    const response = await fetch("/api/generate-image", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ prompt }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-
-    if (data.success && data.image) {
-      console.log("*** Image generation succeeded", data.image.length);
-      callback(data.image, "image generation succeeded");
-    } else {
-      console.log("*** Image generation failed");
-      callback(undefined, data.message || "image generation failed");
-    }
-  } catch (error) {
-    console.error("*** Image generation failed", error);
-    isGeneratingImage.value = false;
-  }
-}
 
 async function startChat(): Promise<void> {
   // Gard against double start
@@ -260,23 +230,7 @@ async function startChat(): Promise<void> {
             instructions: systemPrompt.value,
             modalities: ["text", "audio"],
             voice: "shimmer",
-            tools: [
-              {
-                type: "function",
-                name: "generateImage",
-                description: "Generate an image from a text prompt.",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    prompt: {
-                      type: "string",
-                      description: "Description of the desired image",
-                    },
-                  },
-                  required: ["prompt"],
-                },
-              },
-            ],
+            tools: [generateImageToolDefinition],
           },
         }),
       );
@@ -319,12 +273,12 @@ async function startChat(): Promise<void> {
                 imageContainer.value.scrollHeight;
             }
           });
-          generateImage(prompt, (image, message) => {
+          generateImage(prompt).then((result) => {
             isGeneratingImage.value = false;
-            console.log("Generated image", message);
-            if (image) {
-              console.log("Generated image", image.length);
-              generatedImages.value.push(image);
+            console.log("Generated image", result.message);
+            if (result.image) {
+              console.log("Generated image", result.image.length);
+              generatedImages.value.push(result.image);
               selectedImageIndex.value = generatedImages.value.length - 1;
               nextTick(() => {
                 if (imageContainer.value) {
@@ -338,9 +292,9 @@ async function startChat(): Promise<void> {
                 type: "conversation.item.create",
                 item: {
                   type: "function_call_output",
-                  call_id: msg.call_id, // <-- from msg.call_id of the function call
+                  call_id: msg.call_id,
                   output: JSON.stringify({
-                    status: message,
+                    status: result.message,
                   }),
                 },
               }),
@@ -349,10 +303,9 @@ async function startChat(): Promise<void> {
               JSON.stringify({
                 type: "response.create",
                 response: {
-                  instructions: image
+                  instructions: result.image
                     ? "Acknowledge that the image was generated and has been presented."
                     : "Acknowledge that the image generation failed.",
-                  // e.g., the model might say: "Your image is ready."
                 },
               }),
             );
