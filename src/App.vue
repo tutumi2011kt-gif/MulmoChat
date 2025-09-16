@@ -160,10 +160,7 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
-import {
-  toolDefinition,
-  generateImage,
-} from "./plugins/generateImage";
+import { toolDefinition, generateImage } from "./plugins/generateImage";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -321,7 +318,7 @@ async function startChat(): Promise<void> {
               type: "response.create",
               response: {
                 instructions: result.image
-                  ? "Acknowledge that the image was generated and has been presented."
+                  ? "Acknowledge that the image was generated and has been already presented to the user."
                   : "Acknowledge that the image generation failed.",
               },
             }),

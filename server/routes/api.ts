@@ -98,33 +98,45 @@ router.post(
       const contents = [{ text: prompt }];
       const response = await ai.models.generateContent({ model, contents });
       const parts = response.candidates?.[0]?.content?.parts ?? [];
+      const returnValue: {
+        success: boolean;
+        message?: string;
+        image?: string;
+      } = {
+        success: false,
+        message: undefined,
+        image: undefined,
+      };
 
-      console.log("*** Gemini image generation response parts:", parts.length);
+      console.log(
+        "*** Gemini image generation response parts:",
+        parts.length,
+        prompt,
+      );
 
       for (const part of parts) {
         if (part.text) {
           console.log("*** Gemini image generation response:", part.text);
-        } else if (part.inlineData) {
+          returnValue.message = part.text;
+        }
+        if (part.inlineData) {
           const imageData = part.inlineData.data;
           if (imageData) {
             console.log("*** Image generation succeeded");
-            res.json({
-              success: true,
-              image: `data:image/png;base64,${imageData}`,
-              message: "image generation succeeded",
-            });
-            return;
+            returnValue.success = true;
+            returnValue.image = `data:image/png;base64,${imageData}`;
+          } else {
+            console.log("*** the part has inlineData, but no image data", part);
           }
-          console.log("*** the part has inlineData, but no image data", part);
         }
       }
+      if (!returnValue.message) {
+        returnValue.message = returnValue.image
+          ? "image generation succeeded"
+          : "no image data found in response";
+      }
 
-      // If we get here, no image was found in the response
-      res.json({
-        success: false,
-        message: "no image data found in response",
-      });
-      return;
+      res.json(returnValue);
     } catch (error: unknown) {
       console.error("*** Image generation failed", error);
       const errorMessage =
