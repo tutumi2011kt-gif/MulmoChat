@@ -95,12 +95,8 @@
           class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50"
         >
           <img
-            v-if="generatedImages.length > 0"
-            :src="`data:image/png;base64,${
-              selectedImageIndex !== null
-                ? generatedImages[selectedImageIndex]
-                : generatedImages[generatedImages.length - 1]
-            }`"
+            v-if="generatedImages.length > 0 && selectedImageIndex !== null"
+            :src="`data:image/png;base64,${generatedImages[selectedImageIndex]}`"
             class="max-w-full max-h-full object-contain rounded"
             alt="Current generated image"
           />
@@ -279,6 +275,9 @@ async function startChat(): Promise<void> {
           const context: PluginContext = {
             images: [],
           };
+          if (generatedImages.value.length > 0 && selectedImageIndex.value !== null) {
+            context.images = [generatedImages.value[selectedImageIndex.value]];
+          }
           const promise = pluginExecute(context, msg.name, prompt);
           // Allow the model to continue immediately while the image is generated
           dc.send(
