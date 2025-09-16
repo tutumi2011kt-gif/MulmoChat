@@ -28,4 +28,5 @@ const editImage = async (
 export const plugin: Plugin = {
   toolDefinition,
   execute: editImage,
+  generatingMessage: "Editing image...",
 };

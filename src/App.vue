@@ -71,9 +71,9 @@
               <div
                 class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
               ></div>
-              <span class="ml-2 text-sm text-gray-600"
-                >Generating image...</span
-              >
+              <span class="ml-2 text-sm text-gray-600">{{
+                generatingMessage
+              }}</span>
             </div>
           </div>
         </div>
@@ -156,7 +156,12 @@
 
 <script setup lang="ts">
 import { ref, watch, nextTick } from "vue";
-import { pluginTools, pluginExecute, PluginContext } from "./plugins/type";
+import {
+  pluginTools,
+  pluginExecute,
+  PluginContext,
+  pluginGeneratingMessage,
+} from "./plugins/type";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
 const audioEl = ref<HTMLAudioElement | null>(null);
@@ -167,6 +172,7 @@ const messages = ref<string[]>([]);
 const currentText = ref("");
 const generatedImages = ref<string[]>([]);
 const isGeneratingImage = ref(false);
+const generatingMessage = ref("");
 const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
 const selectedImageIndex = ref<number | null>(null);
@@ -269,8 +275,8 @@ async function startChat(): Promise<void> {
           const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
           delete pendingToolArgs[id];
           const { prompt } = args || {};
-          console.log("Generating image", prompt);
           isGeneratingImage.value = true;
+          generatingMessage.value = pluginGeneratingMessage(msg.name);
           scrollToBottomOfImageContainer();
           const context: PluginContext = {
             images: [],

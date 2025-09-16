@@ -22,6 +22,7 @@ export interface Plugin {
     context: PluginContext,
     prompt: string,
   ) => Promise<{ imageData?: string; message: string }>;
+  generatingMessage: string;
 }
 
 const pluginList = [GenerateImagePlugin, EditImagePlugin];
@@ -49,4 +50,12 @@ export const pluginExecute = (
     throw new Error(`Plugin ${name} not found`);
   }
   return plugin.execute(context, prompt);
+};
+
+export const pluginGeneratingMessage = (name: string) => {
+  const plugin = plugins[name];
+  if (!plugin) {
+    throw new Error(`Plugin ${name} not found`);
+  }
+  return plugin.generatingMessage;
 };
