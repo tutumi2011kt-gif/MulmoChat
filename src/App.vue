@@ -166,11 +166,12 @@ import {
   pluginWaitingMessage,
 } from "./plugins/type";
 
-const SYSTEM_PROMPT_KEY = "system_prompt_v1";
+const SYSTEM_PROMPT_KEY = "system_prompt_v2";
+const DEFAULT_SYSTEM_PROMPT = "You are a teacher who explains various things in a way that even middle school students can easily understand. When words alone are not enough, please use the generateImage API to draw pictures and use them to help explain.";
 const audioEl = ref<HTMLAudioElement | null>(null);
 const imageContainer = ref<HTMLDivElement | null>(null);
 const connecting = ref(false);
-const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || "You are a teacher who explains various things in a way that even middle school students can easily understand. When words alone are not enough, please use the generateImage API to draw pictures and use them to help explain.");
+const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || DEFAULT_SYSTEM_PROMPT);
 const messages = ref<string[]>([]);
 const currentText = ref("");
 const generatedImages = ref<string[]>([]);
