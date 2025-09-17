@@ -98,17 +98,7 @@
       </div>
 
       <!-- Main content -->
-      <div class="flex-1 flex flex-col space-y-4">
-        <!-- Voice chat text display -->
-        <div
-          v-if="messages.length || currentText"
-          class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm flex-shrink-0"
-        >
-          <div v-for="(m, i) in messages" :key="i">{{ m }}</div>
-          <div v-if="currentText">{{ currentText }}</div>
-        </div>
-
-        <!-- Main canvas area for current image -->
+      <div class="flex-1 flex flex-col">
         <div
           class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50"
         >
