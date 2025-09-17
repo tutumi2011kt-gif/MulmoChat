@@ -31,5 +31,5 @@ export const plugin: Plugin = {
   toolDefinition,
   execute: editImage,
   generatingMessage: "Editing image...",
-  waitingMessage: "Tell the user to wait for the image to be edited.",
+  waitingMessage: "Tell the user to that you are editing the image.",
 };

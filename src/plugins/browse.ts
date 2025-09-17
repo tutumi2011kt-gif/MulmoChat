@@ -68,5 +68,5 @@ export const plugin: Plugin = {
   toolDefinition,
   execute: browse,
   generatingMessage: "Browsing webpage...",
-  waitingMessage: "Tell the user to wait for the webpage to be browsed.",
+  waitingMessage: "Tell the user to that you are accessing the specified web page.",
 };
