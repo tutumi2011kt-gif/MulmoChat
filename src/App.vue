@@ -332,15 +332,19 @@ async function startChat(): Promise<void> {
             selectedImageIndex.value = generatedImages.value.length - 1;
             scrollToBottomOfImageContainer();
           }
+          const outputPayload: Record<string, unknown> = {
+            status: result.message,
+          };
+          if (result.jsonData) {
+            outputPayload.data = result.jsonData;
+          }
           dc?.send(
             JSON.stringify({
               type: "conversation.item.create",
               item: {
                 type: "function_call_output",
                 call_id: msg.call_id,
-                output: JSON.stringify({
-                  status: result.message,
-                }),
+                output: JSON.stringify(outputPayload),
               },
             }),
           );
