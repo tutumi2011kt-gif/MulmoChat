@@ -173,7 +173,8 @@ router.post("/browse", async (req: Request, res: Response): Promise<void> => {
     });
   } catch (error: unknown) {
     console.error("Browse failed:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     res.status(500).json({
       error: "Failed to browse URL",
       details: errorMessage,
