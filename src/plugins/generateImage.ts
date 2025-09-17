@@ -9,7 +9,7 @@ const toolDefinition = {
     properties: {
       prompt: {
         type: "string",
-        description: "Description of the desired image",
+        description: "Description of the desired image in English",
       },
     },
     required: ["prompt"],
