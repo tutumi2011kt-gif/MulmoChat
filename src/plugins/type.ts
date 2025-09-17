@@ -20,7 +20,7 @@ export interface Plugin {
   };
   execute: (
     context: PluginContext,
-    prompt: string,
+    args: Record<string, any>,
   ) => Promise<{ imageData?: string; message: string }>;
   generatingMessage: string;
 }
@@ -42,14 +42,14 @@ const plugins = pluginList.reduce(
 export const pluginExecute = (
   context: PluginContext,
   name: string,
-  prompt: string,
+  args: Record<string, any>,
 ) => {
-  console.log("******** Plugin execute", name, prompt);
+  console.log("******** Plugin execute", name, args);
   const plugin = plugins[name];
   if (!plugin) {
     throw new Error(`Plugin ${name} not found`);
   }
-  return plugin.execute(context, prompt);
+  return plugin.execute(context, args);
 };
 
 export const pluginGeneratingMessage = (name: string) => {

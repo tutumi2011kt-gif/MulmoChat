@@ -274,7 +274,6 @@ async function startChat(): Promise<void> {
           const argStr = pendingToolArgs[id] || msg.arguments || "";
           const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
           delete pendingToolArgs[id];
-          const { prompt } = args || {};
           isGeneratingImage.value = true;
           generatingMessage.value = pluginGeneratingMessage(msg.name);
           scrollToBottomOfImageContainer();
@@ -287,7 +286,7 @@ async function startChat(): Promise<void> {
           ) {
             context.images = [generatedImages.value[selectedImageIndex.value]];
           }
-          const promise = pluginExecute(context, msg.name, prompt);
+          const promise = pluginExecute(context, msg.name, args);
           // Allow the model to continue immediately while the image is generated
           dc.send(
             JSON.stringify({

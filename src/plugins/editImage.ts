@@ -20,8 +20,9 @@ const toolDefinition = {
 
 const editImage = async (
   context: PluginContext,
-  prompt: string,
+  args: Record<string, any>,
 ): Promise<{ imageData?: string; message: string }> => {
+  const prompt = args.prompt as string;
   console.log("******** Edit image", prompt);
   return generateImageCommon(context, prompt, true);
 };

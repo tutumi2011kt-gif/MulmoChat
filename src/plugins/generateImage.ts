@@ -54,8 +54,9 @@ export async function generateImageCommon(
 
 const generateImage = async (
   context: PluginContext,
-  prompt: string,
+  args: Record<string, any>,
 ): Promise<{ imageData?: string; message: string }> => {
+  const prompt = args.prompt as string;
   console.log("******** Generate image", prompt);
   return generateImageCommon(context, prompt, false);
 };
