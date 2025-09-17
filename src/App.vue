@@ -169,6 +169,7 @@ import {
   pluginExecute,
   PluginContext,
   pluginGeneratingMessage,
+  pluginWaitingMessage,
 } from "./plugins/type";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
@@ -303,8 +304,7 @@ async function startChat(): Promise<void> {
             JSON.stringify({
               type: "response.create",
               response: {
-                instructions:
-                  "Tell the user to wait for the image to be generated.",
+                instructions: pluginWaitingMessage(msg.name),
                 // e.g., the model might say: "Your image is ready."
               },
             }),
@@ -312,12 +312,7 @@ async function startChat(): Promise<void> {
 
           const result = await promise;
           isGeneratingImage.value = false;
-          console.log("Plugin result:", result.message);
-          if (result.jsonData) {
-            console.log("Plugin JSON data:", result.jsonData);
-          }
           if (result.imageData) {
-            console.log("Generated image", result.imageData.length);
             generatedImages.value.push(result.imageData);
             selectedImageIndex.value = generatedImages.value.length - 1;
             scrollToBottomOfImageContainer();
