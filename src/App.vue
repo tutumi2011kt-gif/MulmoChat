@@ -142,18 +142,12 @@
             ></textarea>
           </div>
 
-          <div class="flex justify-end space-x-2">
+          <div class="flex justify-end">
             <button
               @click="showConfigPopup = false"
               class="px-4 py-2 text-gray-600 hover:text-gray-800"
             >
-              Cancel
-            </button>
-            <button
-              @click="saveConfig"
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-            >
-              Save
+              Close
             </button>
           </div>
         </div>
@@ -172,11 +166,11 @@ import {
   pluginWaitingMessage,
 } from "./plugins/type";
 
-const SYSTEM_PROMPT_KEY = "system_prompt";
+const SYSTEM_PROMPT_KEY = "system_prompt_v1";
 const audioEl = ref<HTMLAudioElement | null>(null);
 const imageContainer = ref<HTMLDivElement | null>(null);
 const connecting = ref(false);
-const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || "");
+const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || "You are a teacher who explains various things in a way that even middle school students can easily understand. When words alone are not enough, please use the generateImage API to draw pictures and use them to help explain.");
 const messages = ref<string[]>([]);
 const currentText = ref("");
 const generatedImages = ref<string[]>([]);
@@ -459,9 +453,6 @@ function stopChat(): void {
   chatActive.value = false;
 }
 
-function saveConfig(): void {
-  showConfigPopup.value = false;
-}
 </script>
 
 <style scoped></style>
