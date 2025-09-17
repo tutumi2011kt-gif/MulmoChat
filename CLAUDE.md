@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Vue 3 application called "mulmochat" that provides a voice chat interface with OpenAI's GPT-4 Realtime API. The application includes image generation capabilities using Google's Gemini model.
+This is a Vue 3 application called "MulmoChat" that provides a voice chat interface with OpenAI's GPT-4 Realtime API. The application includes image generation capabilities using Google's Gemini model.
 
 ## Key Commands
 

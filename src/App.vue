@@ -1,7 +1,7 @@
 <template>
   <div class="p-4 space-y-4">
     <div role="toolbar" class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold">mulmochat</h1>
+      <h1 class="text-2xl font-bold">MulmoChat <span class="text-sm text-gray-500 font-normal">Multi-modal Chat</span></h1>
       <button
         @click="showConfigPopup = true"
         class="p-2 bg-gray-600 text-white rounded hover:bg-gray-700"
@@ -53,7 +53,7 @@
               v-if="!generatedImages.length && !isGeneratingImage"
               class="text-gray-500 text-sm"
             >
-              Feel free to ask me to generate images...
+              Feel free to ask me any questions...
             </div>
             <img
               v-for="(image, index) in generatedImages"
@@ -294,6 +294,7 @@ async function startChat(): Promise<void> {
             context.images = [generatedImages.value[selectedImageIndex.value]];
           }
           const promise = pluginExecute(context, msg.name, args);
+          /*
           // Allow the model to continue immediately while the image is generated
           dc.send(
             JSON.stringify({
@@ -304,7 +305,8 @@ async function startChat(): Promise<void> {
               },
             }),
           );
-
+          */
+         
           const result = await promise;
           isGeneratingImage.value = false;
           if (result.imageData) {
