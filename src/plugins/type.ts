@@ -1,5 +1,6 @@
 import * as GenerateImagePlugin from "./generateImage";
 import * as EditImagePlugin from "./editImage";
+import * as BrowsePlugin from "./browse";
 
 export interface PluginContext {
   images: string[];
@@ -31,7 +32,7 @@ export interface Plugin {
   generatingMessage: string;
 }
 
-const pluginList = [GenerateImagePlugin, EditImagePlugin];
+const pluginList = [GenerateImagePlugin, EditImagePlugin, BrowsePlugin];
 
 export const pluginTools = pluginList.map(
   (plugin) => plugin.plugin.toolDefinition,

@@ -301,7 +301,10 @@ async function startChat(): Promise<void> {
 
           const result = await promise;
           isGeneratingImage.value = false;
-          console.log("Generated image", result.message);
+          console.log("Plugin result:", result.message);
+          if (result.jsonData) {
+            console.log("Plugin JSON data:", result.jsonData);
+          }
           if (result.imageData) {
             console.log("Generated image", result.imageData.length);
             generatedImages.value.push(result.imageData);
