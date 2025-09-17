@@ -1,6 +1,7 @@
 import express, { Request, Response, Router } from "express";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
+import { puppeteerCrawlerAgent } from "mulmocast";
 dotenv.config();
 
 const router: Router = express.Router();
@@ -154,5 +155,30 @@ router.post(
     }
   },
 );
+
+// Browse endpoint using mulmocast puppeteerCrawlerAgent
+router.post("/browse", async (req: Request, res: Response): Promise<void> => {
+  const { url } = req.body;
+
+  if (!url) {
+    res.status(400).json({ error: "URL is required" });
+    return;
+  }
+
+  try {
+    const result = await puppeteerCrawlerAgent({ namedInputs: { url } });
+    res.json({
+      success: true,
+      data: result,
+    });
+  } catch (error: unknown) {
+    console.error("Browse failed:", error);
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    res.status(500).json({
+      error: "Failed to browse URL",
+      details: errorMessage,
+    });
+  }
+});
 
 export default router;
