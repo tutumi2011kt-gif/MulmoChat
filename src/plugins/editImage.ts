@@ -1,4 +1,4 @@
-import { Plugin, PluginContext } from "./type";
+import { Plugin, PluginContext, PluginResult } from "./type";
 import { generateImageCommon } from "./generateImage";
 
 const toolDefinition = {
@@ -21,7 +21,7 @@ const toolDefinition = {
 const editImage = async (
   context: PluginContext,
   args: Record<string, any>,
-): Promise<{ imageData?: string; message: string }> => {
+): Promise<PluginResult> => {
   const prompt = args.prompt as string;
   console.log("******** Edit image", prompt);
   return generateImageCommon(context, prompt, true);

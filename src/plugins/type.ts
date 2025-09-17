@@ -5,6 +5,12 @@ export interface PluginContext {
   images: string[];
 }
 
+export interface PluginResult {
+  imageData?: string;
+  message: string;
+  jsonData?: any;
+}
+
 export interface Plugin {
   toolDefinition: {
     type: "function";
@@ -21,7 +27,7 @@ export interface Plugin {
   execute: (
     context: PluginContext,
     args: Record<string, any>,
-  ) => Promise<{ imageData?: string; message: string }>;
+  ) => Promise<PluginResult>;
   generatingMessage: string;
 }
 

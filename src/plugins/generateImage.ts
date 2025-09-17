@@ -1,4 +1,4 @@
-import { Plugin, PluginContext } from "./type";
+import { Plugin, PluginContext, PluginResult } from "./type";
 
 const toolDefinition = {
   type: "function" as const,
@@ -20,7 +20,7 @@ export async function generateImageCommon(
   context: PluginContext,
   prompt: string,
   editImage: boolean,
-): Promise<{ imageData?: string; message: string }> {
+): Promise<PluginResult> {
   try {
     const response = await fetch("/api/generate-image", {
       method: "POST",
@@ -55,7 +55,7 @@ export async function generateImageCommon(
 const generateImage = async (
   context: PluginContext,
   args: Record<string, any>,
-): Promise<{ imageData?: string; message: string }> => {
+): Promise<PluginResult> => {
   const prompt = args.prompt as string;
   console.log("******** Generate image", prompt);
   return generateImageCommon(context, prompt, false);
