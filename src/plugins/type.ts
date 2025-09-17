@@ -10,6 +10,7 @@ export interface PluginResult {
   imageData?: string;
   message: string;
   jsonData?: any;
+  instructions?: string;
 }
 
 export interface Plugin {

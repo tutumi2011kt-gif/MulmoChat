@@ -45,17 +45,21 @@ const browse = async (
       return {
         message: "Successfully browsed the webpage",
         jsonData: data.data,
+        instructions:
+          "Acknowledge that the webpage was successfully browsed and the content has been retrieved. Just read the title, but don't read the contents unlil the user asks for it.",
       };
     } else {
       console.log("*** Browse failed");
       return {
         message: data.error || "Failed to browse webpage",
+        instructions: "Acknowledge that the webpage browsing failed.",
       };
     }
   } catch (error) {
     console.error("*** Browse failed", error);
     return {
       message: `Failed to browse webpage: ${error instanceof Error ? error.message : "Unknown error"}`,
+      instructions: "Acknowledge that the webpage browsing failed.",
     };
   }
 };

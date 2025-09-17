@@ -41,14 +41,22 @@ export async function generateImageCommon(
       return {
         imageData: data.imageData,
         message: "image generation succeeded",
+        instructions:
+          "Acknowledge that the image was generated and has been already presented to the user.",
       };
     } else {
       console.log("*** Image generation failed");
-      return { message: data.message || "image generation failed" };
+      return {
+        message: data.message || "image generation failed",
+        instructions: "Acknowledge that the image generation failed.",
+      };
     }
   } catch (error) {
     console.error("*** Image generation failed", error);
-    return { message: "image generation failed" };
+    return {
+      message: "image generation failed",
+      instructions: "Acknowledge that the image generation failed.",
+    };
   }
 }
 

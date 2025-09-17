@@ -333,16 +333,16 @@ async function startChat(): Promise<void> {
               },
             }),
           );
-          dc?.send(
-            JSON.stringify({
-              type: "response.create",
-              response: {
-                instructions: result.imageData
-                  ? "Acknowledge that the image was generated and has been already presented to the user."
-                  : "Acknowledge that the image generation failed.",
-              },
-            }),
-          );
+          if (result.instructions) {
+            dc?.send(
+              JSON.stringify({
+                type: "response.create",
+                response: {
+                  instructions: result.instructions,
+                },
+              }),
+            );
+          }
         } catch (e) {
           console.error("Failed to parse function call arguments", e);
         }
@@ -404,7 +404,9 @@ function sendTextMessage(): void {
 
   const dc = webrtc.dc;
   if (!chatActive.value || !dc || dc.readyState !== "open") {
-    console.warn("Cannot send text message because the data channel is not ready.");
+    console.warn(
+      "Cannot send text message because the data channel is not ready.",
+    );
     return;
   }
 
