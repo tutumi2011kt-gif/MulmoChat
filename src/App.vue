@@ -77,6 +77,24 @@
             </div>
           </div>
         </div>
+
+        <div class="space-y-2 flex-shrink-0">
+          <input
+            v-model="userInput"
+            @keyup.enter.prevent="sendTextMessage"
+            :disabled="!chatActive"
+            type="text"
+            placeholder="Type a message"
+            class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          />
+          <button
+            @click="sendTextMessage"
+            :disabled="!chatActive || !userInput.trim()"
+            class="w-full px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            Send Message
+          </button>
+        </div>
       </div>
 
       <!-- Main content -->
@@ -176,6 +194,7 @@ const generatingMessage = ref("");
 const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
 const selectedImageIndex = ref<number | null>(null);
+const userInput = ref("");
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val);
@@ -184,6 +203,7 @@ const chatActive = ref(false);
 
 const webrtc = {
   pc: null as RTCPeerConnection | null,
+  dc: null as RTCDataChannel | null,
   localStream: null as MediaStream | null,
   remoteStream: null as MediaStream | null,
 };
@@ -236,6 +256,7 @@ async function startChat(): Promise<void> {
 
     // Data channel for model events
     const dc = webrtc.pc.createDataChannel("oai-events");
+    webrtc.dc = dc;
     dc.addEventListener("open", () => {
       dc.send(
         JSON.stringify({
@@ -338,6 +359,9 @@ async function startChat(): Promise<void> {
         }
       }
     });
+    dc.addEventListener("close", () => {
+      webrtc.dc = null;
+    });
 
     // Play remote audio
     webrtc.remoteStream = new MediaStream();
@@ -378,16 +402,57 @@ async function startChat(): Promise<void> {
     chatActive.value = true;
   } catch (err) {
     console.error(err);
+    stopChat();
     alert("Failed to start voice chat. Check console for details.");
   } finally {
     connecting.value = false;
   }
 }
 
+function sendTextMessage(): void {
+  const text = userInput.value.trim();
+  if (!text) return;
+
+  const dc = webrtc.dc;
+  if (!chatActive.value || !dc || dc.readyState !== "open") {
+    console.warn("Cannot send text message because the data channel is not ready.");
+    return;
+  }
+
+  dc.send(
+    JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text,
+          },
+        ],
+      },
+    }),
+  );
+  dc.send(
+    JSON.stringify({
+      type: "response.create",
+      response: {},
+    }),
+  );
+
+  messages.value.push(`You: ${text}`);
+  userInput.value = "";
+}
+
 function stopChat(): void {
   if (webrtc.pc) {
     webrtc.pc.close();
     webrtc.pc = null;
+  }
+  if (webrtc.dc) {
+    webrtc.dc.close();
+    webrtc.dc = null;
   }
   if (webrtc.localStream) {
     webrtc.localStream.getTracks().forEach((track) => track.stop());
