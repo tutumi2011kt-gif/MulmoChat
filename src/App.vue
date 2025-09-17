@@ -77,20 +77,28 @@
             </div>
           </div>
         </div>
+
+        <div class="space-y-2 flex-shrink-0">
+          <input
+            v-model="userInput"
+            @keyup.enter.prevent="sendTextMessage"
+            :disabled="!chatActive"
+            type="text"
+            placeholder="Type a message"
+            class="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+          />
+          <button
+            @click="sendTextMessage"
+            :disabled="!chatActive || !userInput.trim()"
+            class="w-full px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          >
+            Send Message
+          </button>
+        </div>
       </div>
 
       <!-- Main content -->
-      <div class="flex-1 flex flex-col space-y-4">
-        <!-- Voice chat text display -->
-        <div
-          v-if="messages.length || currentText"
-          class="border rounded p-2 h-40 overflow-y-auto whitespace-pre-wrap text-sm flex-shrink-0"
-        >
-          <div v-for="(m, i) in messages" :key="i">{{ m }}</div>
-          <div v-if="currentText">{{ currentText }}</div>
-        </div>
-
-        <!-- Main canvas area for current image -->
+      <div class="flex-1 flex flex-col">
         <div
           class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50"
         >
@@ -161,6 +169,7 @@ import {
   pluginExecute,
   PluginContext,
   pluginGeneratingMessage,
+  pluginWaitingMessage,
 } from "./plugins/type";
 
 const SYSTEM_PROMPT_KEY = "system_prompt";
@@ -176,6 +185,7 @@ const generatingMessage = ref("");
 const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
 const selectedImageIndex = ref<number | null>(null);
+const userInput = ref("");
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val);
@@ -184,6 +194,7 @@ const chatActive = ref(false);
 
 const webrtc = {
   pc: null as RTCPeerConnection | null,
+  dc: null as RTCDataChannel | null,
   localStream: null as MediaStream | null,
   remoteStream: null as MediaStream | null,
 };
@@ -236,6 +247,7 @@ async function startChat(): Promise<void> {
 
     // Data channel for model events
     const dc = webrtc.pc.createDataChannel("oai-events");
+    webrtc.dc = dc;
     dc.addEventListener("open", () => {
       dc.send(
         JSON.stringify({
@@ -292,8 +304,7 @@ async function startChat(): Promise<void> {
             JSON.stringify({
               type: "response.create",
               response: {
-                instructions:
-                  "Tell the user to wait for the image to be generated.",
+                instructions: pluginWaitingMessage(msg.name),
                 // e.g., the model might say: "Your image is ready."
               },
             }),
@@ -301,15 +312,16 @@ async function startChat(): Promise<void> {
 
           const result = await promise;
           isGeneratingImage.value = false;
-          console.log("Plugin result:", result.message);
-          if (result.jsonData) {
-            console.log("Plugin JSON data:", result.jsonData);
-          }
           if (result.imageData) {
-            console.log("Generated image", result.imageData.length);
             generatedImages.value.push(result.imageData);
             selectedImageIndex.value = generatedImages.value.length - 1;
             scrollToBottomOfImageContainer();
+          }
+          const outputPayload: Record<string, unknown> = {
+            status: result.message,
+          };
+          if (result.jsonData) {
+            outputPayload.data = result.jsonData;
           }
           dc?.send(
             JSON.stringify({
@@ -317,26 +329,27 @@ async function startChat(): Promise<void> {
               item: {
                 type: "function_call_output",
                 call_id: msg.call_id,
-                output: JSON.stringify({
-                  status: result.message,
-                }),
+                output: JSON.stringify(outputPayload),
               },
             }),
           );
-          dc?.send(
-            JSON.stringify({
-              type: "response.create",
-              response: {
-                instructions: result.imageData
-                  ? "Acknowledge that the image was generated and has been already presented to the user."
-                  : "Acknowledge that the image generation failed.",
-              },
-            }),
-          );
+          if (result.instructions) {
+            dc?.send(
+              JSON.stringify({
+                type: "response.create",
+                response: {
+                  instructions: result.instructions,
+                },
+              }),
+            );
+          }
         } catch (e) {
           console.error("Failed to parse function call arguments", e);
         }
       }
+    });
+    dc.addEventListener("close", () => {
+      webrtc.dc = null;
     });
 
     // Play remote audio
@@ -378,16 +391,59 @@ async function startChat(): Promise<void> {
     chatActive.value = true;
   } catch (err) {
     console.error(err);
+    stopChat();
     alert("Failed to start voice chat. Check console for details.");
   } finally {
     connecting.value = false;
   }
 }
 
+function sendTextMessage(): void {
+  const text = userInput.value.trim();
+  if (!text) return;
+
+  const dc = webrtc.dc;
+  if (!chatActive.value || !dc || dc.readyState !== "open") {
+    console.warn(
+      "Cannot send text message because the data channel is not ready.",
+    );
+    return;
+  }
+
+  dc.send(
+    JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        type: "message",
+        role: "user",
+        content: [
+          {
+            type: "input_text",
+            text,
+          },
+        ],
+      },
+    }),
+  );
+  dc.send(
+    JSON.stringify({
+      type: "response.create",
+      response: {},
+    }),
+  );
+
+  messages.value.push(`You: ${text}`);
+  userInput.value = "";
+}
+
 function stopChat(): void {
   if (webrtc.pc) {
     webrtc.pc.close();
     webrtc.pc = null;
+  }
+  if (webrtc.dc) {
+    webrtc.dc.close();
+    webrtc.dc = null;
   }
   if (webrtc.localStream) {
     webrtc.localStream.getTracks().forEach((track) => track.stop());

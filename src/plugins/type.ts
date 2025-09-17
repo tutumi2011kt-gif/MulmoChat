@@ -10,6 +10,7 @@ export interface PluginResult {
   imageData?: string;
   message: string;
   jsonData?: any;
+  instructions?: string;
 }
 
 export interface Plugin {
@@ -30,6 +31,7 @@ export interface Plugin {
     args: Record<string, any>,
   ) => Promise<PluginResult>;
   generatingMessage: string;
+  waitingMessage: string;
 }
 
 const pluginList = [GenerateImagePlugin, EditImagePlugin, BrowsePlugin];
@@ -65,4 +67,12 @@ export const pluginGeneratingMessage = (name: string) => {
     throw new Error(`Plugin ${name} not found`);
   }
   return plugin.generatingMessage;
+};
+
+export const pluginWaitingMessage = (name: string) => {
+  const plugin = plugins[name];
+  if (!plugin) {
+    throw new Error(`Plugin ${name} not found`);
+  }
+  return plugin.waitingMessage;
 };
