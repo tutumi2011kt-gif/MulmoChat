@@ -52,6 +52,7 @@ const mulmocast = async (
 
   return {
     message: `Mulmocast has processed the MulmoScript for "${title}" with ${beats.length} beats.`,
+    title: title,
     htmlData: htmlContent,
     instructions: "Acknowledge that the mulmocast operation was completed.",
   };

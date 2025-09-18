@@ -44,6 +44,7 @@ const browse = async (
       console.log("*** Browse succeeded", data.data);
       return {
         message: "Successfully browsed the webpage",
+        title: data.data.title || "Untitled",
         url,
         jsonData: data.data,
         instructions:

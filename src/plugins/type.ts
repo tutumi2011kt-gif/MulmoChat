@@ -9,6 +9,7 @@ export interface PluginContext {
 
 export interface PluginResult {
   message: string;
+  title?: string;
   imageData?: string;
   url?: string;
   jsonData?: any;

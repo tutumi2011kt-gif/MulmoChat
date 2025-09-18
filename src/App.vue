@@ -77,16 +77,16 @@
               >
                 <div class="text-blue-600 font-medium">🌐 Web Page</div>
                 <div class="text-xs text-gray-600 mt-1 truncate">
-                  {{ result.url }}
+                  {{ result.title || result.url }}
                 </div>
               </div>
               <div
                 v-else-if="result.htmlData"
                 class="text-center p-4 bg-green-50 rounded"
               >
-                <div class="text-green-600 font-medium">📄 HTML Content</div>
-                <div class="text-xs text-gray-600 mt-1">
-                  Interactive content
+                <div class="text-green-600 font-medium">📄 Presentation</div>
+                <div class="text-xs text-gray-600 mt-1 truncate">
+                  {{ result.title || "Interactive content" }}
                 </div>
               </div>
               <div v-else class="text-center p-4 bg-gray-50 rounded">
