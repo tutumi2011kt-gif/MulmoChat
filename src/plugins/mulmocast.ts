@@ -46,8 +46,8 @@ const mulmocast = async (
   // Generate HTML from MulmoScript
   let htmlContent = `<h1 style="font-size: 2em; margin-bottom: 1em;">${title}</h1>`;
 
-  // Generate images for each beat
-  for (const beat of beats) {
+  // Generate images for each beat concurrently
+  const imagePromises = beats.map(async (beat: { text: string }) => {
     const prompt = `generate image appropriate for ${beat.text}`;
 
     try {
@@ -62,15 +62,24 @@ const mulmocast = async (
       if (response.ok) {
         const data = await response.json();
         if (data.success && data.imageData) {
-          htmlContent += `<img src="data:image/png;base64,${data.imageData}" style="max-width: 100%; margin: 1em 0;" alt="${beat.text}" />`;
+          return data.imageData;
         }
       }
     } catch (error) {
       console.error("Failed to generate image for beat:", error);
     }
+    return null;
+  });
 
+  const images = await Promise.all(imagePromises);
+
+  // Build HTML with images and text
+  beats.forEach((beat: { text: string }, index: number) => {
+    if (images[index]) {
+      htmlContent += `<img src="data:image/png;base64,${images[index]}" style="max-width: 100%; margin: 1em 0;" alt="${beat.text}" />`;
+    }
     htmlContent += `<p style="margin-bottom: 1em;">${beat.text}</p>`;
-  }
+  });
 
   return {
     message: `Mulmocast has processed the MulmoScript for "${title}" with ${beats.length} beats.`,
