@@ -41,9 +41,18 @@ const mulmocast = async (
 ): Promise<PluginResult> => {
   console.log("******** Mulmocast plugin\n", JSON.stringify(args, null, 2));
 
-  // Placeholder implementation
+  const { title, beats } = args;
+
+  // Generate HTML from MulmoScript
+  let htmlContent = `<h1 style="font-size: 2em; margin-bottom: 1em;">${title}</h1>`;
+
+  beats.forEach((beat: { text: string }) => {
+    htmlContent += `<p style="margin-bottom: 1em;">${beat.text}</p>`;
+  });
+
   return {
-    message: `Mulmocast has received the MulmoScript and is processing it.`,
+    message: `Mulmocast has processed the MulmoScript for "${title}" with ${beats.length} beats.`,
+    htmlData: htmlContent,
     instructions: "Acknowledge that the mulmocast operation was completed.",
   };
 };

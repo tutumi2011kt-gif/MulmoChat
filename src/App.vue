@@ -111,6 +111,11 @@
             class="w-full h-full rounded"
             frameborder="0"
           />
+          <div
+            v-else-if="currentHtmlData"
+            v-html="currentHtmlData"
+            class="w-full h-full overflow-auto p-4 bg-white rounded"
+          />
           <img
             v-else-if="
               generatedImages.length > 0 && selectedImageIndex !== null
@@ -195,6 +200,7 @@ const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
 const selectedImageIndex = ref<number | null>(null);
 const currentUrl = ref<string | null>(null);
+const currentHtmlData = ref<string | null>(null);
 const userInput = ref("");
 
 watch(systemPrompt, (val) => {
@@ -326,12 +332,16 @@ async function startChat(): Promise<void> {
           isGeneratingImage.value = false;
           selectedImageIndex.value = null;
           currentUrl.value = null;
+          currentHtmlData.value = null;
           if (result.imageData) {
             generatedImages.value.push(result.imageData);
             selectedImageIndex.value = generatedImages.value.length - 1;
             scrollToBottomOfImageContainer();
           } else if (result.url) {
             currentUrl.value = result.url;
+            selectedImageIndex.value = null;
+          } else if (result.htmlData) {
+            currentHtmlData.value = result.htmlData;
             selectedImageIndex.value = null;
           }
 

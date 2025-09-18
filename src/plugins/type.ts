@@ -13,6 +13,7 @@ export interface PluginResult {
   url?: string;
   jsonData?: any;
   instructions?: string;
+  htmlData?: string;
 }
 
 export interface Plugin {
