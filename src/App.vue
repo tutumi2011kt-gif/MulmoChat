@@ -53,20 +53,49 @@
             class="border rounded p-2 overflow-y-auto space-y-2 flex-1"
           >
             <div
-              v-if="!generatedImages.length && !isGeneratingImage"
+              v-if="!pluginResults.length && !isGeneratingImage"
               class="text-gray-500 text-sm"
             >
               Feel free to ask me any questions...
             </div>
-            <img
-              v-for="(image, index) in generatedImages"
+            <div
+              v-for="(result, index) in pluginResults"
               :key="index"
-              :src="`data:image/png;base64,${image}`"
-              class="max-w-full h-auto rounded cursor-pointer hover:opacity-75 transition-opacity"
-              :class="{ 'ring-2 ring-blue-500': selectedImageIndex === index }"
-              alt="Generated image"
-              @click="selectedImageIndex = index"
-            />
+              class="cursor-pointer hover:opacity-75 transition-opacity border rounded p-2"
+              :class="{ 'ring-2 ring-blue-500': selectedResult === result }"
+              @click="selectedResult = result"
+            >
+              <img
+                v-if="result.imageData"
+                :src="`data:image/png;base64,${result.imageData}`"
+                class="max-w-full h-auto rounded"
+                alt="Generated image"
+              />
+              <div
+                v-else-if="result.url"
+                class="text-center p-4 bg-blue-50 rounded"
+              >
+                <div class="text-blue-600 font-medium">🌐 Web Page</div>
+                <div class="text-xs text-gray-600 mt-1 truncate">
+                  {{ result.url }}
+                </div>
+              </div>
+              <div
+                v-else-if="result.htmlData"
+                class="text-center p-4 bg-green-50 rounded"
+              >
+                <div class="text-green-600 font-medium">📄 HTML Content</div>
+                <div class="text-xs text-gray-600 mt-1">
+                  Interactive content
+                </div>
+              </div>
+              <div v-else class="text-center p-4 bg-gray-50 rounded">
+                <div class="text-gray-600 font-medium">📋 Text Result</div>
+                <div class="text-xs text-gray-500 mt-1 truncate">
+                  {{ result.message }}
+                </div>
+              </div>
+            </div>
             <div
               v-if="isGeneratingImage"
               class="flex items-center justify-center py-4"
@@ -106,21 +135,19 @@
           class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50"
         >
           <iframe
-            v-if="currentUrl"
-            :src="currentUrl"
+            v-if="selectedResult?.url"
+            :src="selectedResult.url"
             class="w-full h-full rounded"
             frameborder="0"
           />
           <div
-            v-else-if="currentHtmlData"
-            v-html="currentHtmlData"
+            v-else-if="selectedResult?.htmlData"
+            v-html="selectedResult.htmlData"
             class="w-full h-full overflow-auto p-4 bg-white rounded"
           />
           <img
-            v-else-if="
-              generatedImages.length > 0 && selectedImageIndex !== null
-            "
-            :src="`data:image/png;base64,${generatedImages[selectedImageIndex]}`"
+            v-else-if="selectedResult?.imageData"
+            :src="`data:image/png;base64,${selectedResult.imageData}`"
             class="max-w-full max-h-full object-contain rounded"
             alt="Current generated image"
           />
@@ -178,6 +205,7 @@ import {
   pluginTools,
   pluginExecute,
   PluginContext,
+  PluginResult,
   pluginGeneratingMessage,
   pluginWaitingMessage,
 } from "./plugins/type";
@@ -193,14 +221,12 @@ const systemPrompt = ref(
 );
 const messages = ref<string[]>([]);
 const currentText = ref("");
-const generatedImages = ref<string[]>([]);
+const pluginResults = ref<PluginResult[]>([]);
 const isGeneratingImage = ref(false);
 const generatingMessage = ref("");
 const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
-const selectedImageIndex = ref<number | null>(null);
-const currentUrl = ref<string | null>(null);
-const currentHtmlData = ref<string | null>(null);
+const selectedResult = ref<PluginResult | null>(null);
 const userInput = ref("");
 
 watch(systemPrompt, (val) => {
@@ -308,11 +334,8 @@ async function startChat(): Promise<void> {
           const context: PluginContext = {
             images: [],
           };
-          if (
-            generatedImages.value.length > 0 &&
-            selectedImageIndex.value !== null
-          ) {
-            context.images = [generatedImages.value[selectedImageIndex.value]];
+          if (selectedResult.value?.imageData) {
+            context.images = [selectedResult.value.imageData];
           }
           const promise = pluginExecute(context, msg.name, args);
           /*
@@ -330,20 +353,9 @@ async function startChat(): Promise<void> {
 
           const result = await promise;
           isGeneratingImage.value = false;
-          selectedImageIndex.value = null;
-          currentUrl.value = null;
-          currentHtmlData.value = null;
-          if (result.imageData) {
-            generatedImages.value.push(result.imageData);
-            selectedImageIndex.value = generatedImages.value.length - 1;
-            scrollToBottomOfImageContainer();
-          } else if (result.url) {
-            currentUrl.value = result.url;
-            selectedImageIndex.value = null;
-          } else if (result.htmlData) {
-            currentHtmlData.value = result.htmlData;
-            selectedImageIndex.value = null;
-          }
+          pluginResults.value.push(result);
+          selectedResult.value = result;
+          scrollToBottomOfImageContainer();
 
           const outputPayload: Record<string, unknown> = {
             status: result.message,
