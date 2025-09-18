@@ -63,7 +63,10 @@
               :key="index"
               class="cursor-pointer hover:opacity-75 transition-opacity border rounded p-2"
               :class="{ 'ring-2 ring-blue-500': selectedResult === result }"
-              @click="selectedResult = result"
+              @click="
+                selectedResult = result;
+                scrollCurrentResultToTop();
+              "
             >
               <img
                 v-if="result.imageData"
@@ -253,6 +256,30 @@ function scrollToBottomOfImageContainer(): void {
   });
 }
 
+function scrollCurrentResultToTop(): void {
+  nextTick(() => {
+    const mainContent = document.querySelector(
+      ".flex-1.border.rounded.bg-gray-50.overflow-hidden",
+    );
+    if (mainContent) {
+      const scrollableElement = mainContent.querySelector(
+        "iframe, .w-full.h-full.overflow-auto, .w-full.h-full.flex",
+      );
+      if (scrollableElement) {
+        if (scrollableElement.tagName === "IFRAME") {
+          try {
+            scrollableElement.contentWindow?.scrollTo(0, 0);
+          } catch (e) {
+            // Cross-origin iframe, can't scroll
+          }
+        } else {
+          scrollableElement.scrollTop = 0;
+        }
+      }
+    }
+  });
+}
+
 async function startChat(): Promise<void> {
   // Gard against double start
   if (chatActive.value || connecting.value) return;
@@ -360,6 +387,7 @@ async function startChat(): Promise<void> {
           pluginResults.value.push(result);
           selectedResult.value = result;
           scrollToBottomOfImageContainer();
+          scrollCurrentResultToTop();
 
           const outputPayload: Record<string, unknown> = {
             status: result.message,

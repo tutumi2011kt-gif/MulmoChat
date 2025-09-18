@@ -50,12 +50,16 @@ const mulmocast = async (
   const { title, beats, style: styleParam } = args;
 
   const styleMap = {
-    photorealistic: "<style>Photo realistic and cinematic. Let the art convey the story and emotions without text. Use the last image for the aspect ratio.</style>",
-    anime: "<style>A highly polished 2D digital illustration in anime and manga style, featuring clean linework, soft shading, vivid colors, and expressive facial detailing. The composition emphasizes clarity and visual impact with a minimalistic background and a strong character focus. The lighting is even and bright, giving the image a crisp and energetic feel, reminiscent of high-quality character art used in Japanese visual novels or mobile games. Let the art convey the story and emotions without text. Use the last image for the aspect ratio.</style>",
-    comicstrips: "<style>Ghibli style multi-panel comic strips in landscape mode. Use speech bubbles with short, natural dialogue (1–6 words). Keep text minimal. Use the last image for the aspect ratio.</style>"
+    photorealistic:
+      "<style>Photo realistic and cinematic. Let the art convey the story and emotions without text. Use the last image for the aspect ratio.</style>",
+    anime:
+      "<style>A highly polished 2D digital illustration in anime and manga style, featuring clean linework, soft shading, vivid colors, and expressive facial detailing. The composition emphasizes clarity and visual impact with a minimalistic background and a strong character focus. The lighting is even and bright, giving the image a crisp and energetic feel, reminiscent of high-quality character art used in Japanese visual novels or mobile games. Let the art convey the story and emotions without text. Use the last image for the aspect ratio.</style>",
+    comicstrips:
+      "<style>Ghibli style multi-panel comic strips in landscape mode. Use speech bubbles with short, natural dialogue (1–6 words). Keep text minimal. Use the last image for the aspect ratio.</style>",
   };
 
-  const style = styleMap[styleParam as keyof typeof styleMap] || styleMap.photorealistic;
+  const style =
+    styleMap[styleParam as keyof typeof styleMap] || styleMap.photorealistic;
 
   // Generate HTML from MulmoScript
   let htmlContent = `<h1 style="font-size: 2em; margin-bottom: 1em;">${title}</h1>`;
