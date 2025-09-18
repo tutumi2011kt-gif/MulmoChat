@@ -7,8 +7,9 @@ export interface PluginContext {
 }
 
 export interface PluginResult {
-  imageData?: string;
   message: string;
+  imageData?: string;
+  url?: string;
   jsonData?: any;
   instructions?: string;
 }

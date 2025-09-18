@@ -44,6 +44,7 @@ const browse = async (
       console.log("*** Browse succeeded", data.data);
       return {
         message: "Successfully browsed the webpage",
+        url,
         jsonData: data.data,
         instructions:
           "Acknowledge that the webpage was successfully browsed and the content has been retrieved. Just read the title, but don't read the contents unlil the user asks for it.",
@@ -68,5 +69,6 @@ export const plugin: Plugin = {
   toolDefinition,
   execute: browse,
   generatingMessage: "Browsing webpage...",
-  waitingMessage: "Tell the user to that you are accessing the specified web page.",
+  waitingMessage:
+    "Tell the user to that you are accessing the specified web page.",
 };

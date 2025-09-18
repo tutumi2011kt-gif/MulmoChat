@@ -1,7 +1,10 @@
 <template>
   <div class="p-4 space-y-4">
     <div role="toolbar" class="flex justify-between items-center">
-      <h1 class="text-2xl font-bold">MulmoChat <span class="text-sm text-gray-500 font-normal">Multi-modal Chat</span></h1>
+      <h1 class="text-2xl font-bold">
+        MulmoChat
+        <span class="text-sm text-gray-500 font-normal">Multi-modal Chat</span>
+      </h1>
       <button
         @click="showConfigPopup = true"
         class="p-2 bg-gray-600 text-white rounded hover:bg-gray-700"
@@ -102,8 +105,16 @@
         <div
           class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50"
         >
+          <iframe
+            v-if="currentUrl"
+            :src="currentUrl"
+            class="w-full h-full rounded"
+            frameborder="0"
+          />
           <img
-            v-if="generatedImages.length > 0 && selectedImageIndex !== null"
+            v-else-if="
+              generatedImages.length > 0 && selectedImageIndex !== null
+            "
             :src="`data:image/png;base64,${generatedImages[selectedImageIndex]}`"
             class="max-w-full max-h-full object-contain rounded"
             alt="Current generated image"
@@ -167,11 +178,14 @@ import {
 } from "./plugins/type";
 
 const SYSTEM_PROMPT_KEY = "system_prompt_v2";
-const DEFAULT_SYSTEM_PROMPT = "You are a teacher who explains various things in a way that even middle school students can easily understand. When words alone are not enough, please use the generateImage API to draw pictures and use them to help explain.";
+const DEFAULT_SYSTEM_PROMPT =
+  "You are a teacher who explains various things in a way that even middle school students can easily understand. When words alone are not enough, please use the generateImage API to draw pictures and use them to help explain.";
 const audioEl = ref<HTMLAudioElement | null>(null);
 const imageContainer = ref<HTMLDivElement | null>(null);
 const connecting = ref(false);
-const systemPrompt = ref(localStorage.getItem(SYSTEM_PROMPT_KEY) || DEFAULT_SYSTEM_PROMPT);
+const systemPrompt = ref(
+  localStorage.getItem(SYSTEM_PROMPT_KEY) || DEFAULT_SYSTEM_PROMPT,
+);
 const messages = ref<string[]>([]);
 const currentText = ref("");
 const generatedImages = ref<string[]>([]);
@@ -180,6 +194,7 @@ const generatingMessage = ref("");
 const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
 const selectedImageIndex = ref<number | null>(null);
+const currentUrl = ref<string | null>(null);
 const userInput = ref("");
 
 watch(systemPrompt, (val) => {
@@ -306,14 +321,20 @@ async function startChat(): Promise<void> {
             }),
           );
           */
-         
+
           const result = await promise;
           isGeneratingImage.value = false;
+          selectedImageIndex.value = null;
+          currentUrl.value = null;
           if (result.imageData) {
             generatedImages.value.push(result.imageData);
             selectedImageIndex.value = generatedImages.value.length - 1;
             scrollToBottomOfImageContainer();
+          } else if (result.url) {
+            currentUrl.value = result.url;
+            selectedImageIndex.value = null;
           }
+
           const outputPayload: Record<string, unknown> = {
             status: result.message,
           };
@@ -455,7 +476,6 @@ function stopChat(): void {
   }
   chatActive.value = false;
 }
-
 </script>
 
 <style scoped></style>
