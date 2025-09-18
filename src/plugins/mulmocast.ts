@@ -42,13 +42,15 @@ const mulmocast = async (
   console.log("******** Mulmocast plugin\n", JSON.stringify(args, null, 2));
 
   const { title, beats } = args;
+  const style =
+    "<style>Photo realistic and cinematic. Let the art convey the story and emotions without text.</style>";
 
   // Generate HTML from MulmoScript
   let htmlContent = `<h1 style="font-size: 2em; margin-bottom: 1em;">${title}</h1>`;
 
   // Generate images for each beat concurrently
   const imagePromises = beats.map(async (beat: { text: string }) => {
-    const prompt = `generate image appropriate for ${beat.text}`;
+    const prompt = `generate image appropriate for the text. <text>${beat.text}</text>${style}`;
 
     try {
       const response = await fetch("/api/generate-image", {
