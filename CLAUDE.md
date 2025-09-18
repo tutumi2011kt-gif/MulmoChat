@@ -44,3 +44,7 @@ The app implements a tool calling system where the OpenAI model can call the `ge
 2. Sends `response.create` with system prompt and tool definitions
 3. Handles microphone audio input and remote audio playback
 4. Manages SDP offer/answer exchange with OpenAI API endpoint
+
+## File Restrictions
+
+- **Do not read src/plugins/blank.ts**: This file is too long and should be avoided when analyzing the codebase
