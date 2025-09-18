@@ -1,6 +1,7 @@
 import * as GenerateImagePlugin from "./generateImage";
 import * as EditImagePlugin from "./editImage";
 import * as BrowsePlugin from "./browse";
+import * as MulmocastPlugin from "./mulmocast";
 
 export interface PluginContext {
   images: string[];
@@ -35,7 +36,12 @@ export interface Plugin {
   waitingMessage: string;
 }
 
-const pluginList = [GenerateImagePlugin, EditImagePlugin, BrowsePlugin];
+const pluginList = [
+  GenerateImagePlugin,
+  EditImagePlugin,
+  BrowsePlugin,
+  MulmocastPlugin,
+];
 
 export const pluginTools = pluginList.map(
   (plugin) => plugin.plugin.toolDefinition,
