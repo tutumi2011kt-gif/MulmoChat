@@ -1,4 +1,5 @@
 import { Plugin, PluginContext, PluginResult } from "./type";
+import { blankImageBase64 } from "./blank";
 
 const toolDefinition = {
   type: "function" as const,
@@ -43,7 +44,7 @@ const mulmocast = async (
 
   const { title, beats } = args;
   const style =
-    "<style>Photo realistic and cinematic. Let the art convey the story and emotions without text.</style>";
+    "<style>Photo realistic and cinematic. Let the art convey the story and emotions without text.Use the last image for the aspect ratio.</style>";
 
   // Generate HTML from MulmoScript
   let htmlContent = `<h1 style="font-size: 2em; margin-bottom: 1em;">${title}</h1>`;
@@ -58,7 +59,7 @@ const mulmocast = async (
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt, images: [] }),
+        body: JSON.stringify({ prompt, images: [blankImageBase64] }),
       });
 
       if (response.ok) {
