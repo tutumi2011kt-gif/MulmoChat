@@ -131,9 +131,7 @@
 
       <!-- Main content -->
       <div class="flex-1 flex flex-col">
-        <div
-          class="flex-1 border rounded p-4 flex items-center justify-center bg-gray-50"
-        >
+        <div class="flex-1 border rounded bg-gray-50 overflow-hidden">
           <iframe
             v-if="selectedResult?.url"
             :src="selectedResult.url"
@@ -142,16 +140,22 @@
           />
           <div
             v-else-if="selectedResult?.htmlData"
+            class="w-full h-full overflow-auto p-4 bg-white"
             v-html="selectedResult.htmlData"
-            class="w-full h-full overflow-auto p-4 bg-white rounded"
           />
-          <img
+          <div
             v-else-if="selectedResult?.imageData"
-            :src="`data:image/png;base64,${selectedResult.imageData}`"
-            class="max-w-full max-h-full object-contain rounded"
-            alt="Current generated image"
-          />
-          <div v-else class="text-gray-400 text-lg">Canvas</div>
+            class="w-full h-full flex items-center justify-center p-4"
+          >
+            <img
+              :src="`data:image/png;base64,${selectedResult.imageData}`"
+              class="max-w-full max-h-full object-contain rounded"
+              alt="Current generated image"
+            />
+          </div>
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <div class="text-gray-400 text-lg">Canvas</div>
+          </div>
         </div>
       </div>
     </div>
