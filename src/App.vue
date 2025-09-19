@@ -326,9 +326,14 @@ async function startChat(): Promise<void> {
         JSON.stringify({
           type: "session.update",
           session: {
+            type: "realtime",
+            model: "gpt-realtime",
             instructions: systemPrompt.value,
-            modalities: ["text", "audio"],
-            voice: "shimmer",
+            audio: {
+              output: {
+                voice: "shimmer",
+              },
+            },
             tools: pluginTools,
           },
         }),
@@ -462,17 +467,14 @@ async function startChat(): Promise<void> {
     const offer = await webrtc.pc.createOffer();
     await webrtc.pc.setLocalDescription(offer);
 
-    const response = await fetch(
-      "https://api.openai.com/v1/realtime/calls", 
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${config.apiKey}`,
-          "Content-Type": "application/sdp",
-        },
-        body: offer.sdp,
+    const response = await fetch("https://api.openai.com/v1/realtime/calls", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${config.apiKey}`,
+        "Content-Type": "application/sdp",
       },
-    );
+      body: offer.sdp,
+    });
     const responseText = await response.text();
     console.log("Received answer from OpenAI", response, responseText);
 

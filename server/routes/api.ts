@@ -8,8 +8,6 @@ const router: Router = express.Router();
 
 // Session start endpoint
 router.get("/start", async (req: Request, res: Response): Promise<void> => {
-  console.log("Chat session started");
-
   const openaiKey = process.env.OPENAI_API_KEY;
 
   if (!openaiKey) {
@@ -46,22 +44,11 @@ router.get("/start", async (req: Request, res: Response): Promise<void> => {
       throw new Error(`OpenAI API error: ${response.statusText}`);
     }
 
-    const data = await response.json()
-    console.log('Generated ephemeral key:', data)
-
-    /*
-    res.json({
-      success: true,
-      message: 'Session started',
-      ephemeralKey: data.value
-    })
-    */
-    // HACK: Use a fake ephemeral key for now
+    const data = await response.json();
     res.json({
       success: true,
       message: "Session started",
-      ephemeralKey: data.value
-      // ephemeralKey: openaiKey, // HACK: Use the real key for now
+      ephemeralKey: data.value,
     });
   } catch (error: unknown) {
     console.error("Failed to generate ephemeral key:", error);
