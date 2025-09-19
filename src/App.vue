@@ -280,6 +280,112 @@ function scrollCurrentResultToTop(): void {
   });
 }
 
+async function messageHandler(event: MessageEvent): Promise<void> {
+  const msg = JSON.parse(event.data);
+  // console.log("Message", event.data.length, msg.type);
+  if (msg.type === "error") {
+    console.error("Error", msg.error);
+  }
+  if (msg.type === "response.text.delta") {
+    currentText.value += msg.delta;
+  }
+  if (msg.type === "response.completed") {
+    if (currentText.value.trim()) {
+      messages.value.push(currentText.value);
+    }
+    currentText.value = "";
+  }
+  if (msg.type === "response.function_call_arguments.delta") {
+    const id = msg.id || msg.call_id;
+    pendingToolArgs[id] = (pendingToolArgs[id] || "") + msg.delta;
+  }
+  if (msg.type === "response.function_call_arguments.done") {
+    const id = msg.id || msg.call_id;
+    try {
+      const argStr = pendingToolArgs[id] || msg.arguments || "";
+      const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
+      delete pendingToolArgs[id];
+      isGeneratingImage.value = true;
+      generatingMessage.value = pluginGeneratingMessage(msg.name);
+      scrollToBottomOfImageContainer();
+      const context: PluginContext = {
+        images: [],
+      };
+      if (selectedResult.value?.imageData) {
+        context.images = [selectedResult.value.imageData];
+      }
+      const promise = pluginExecute(context, msg.name, args);
+      /*
+      // Allow the model to continue immediately while the image is generated
+      dc.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            instructions: pluginWaitingMessage(msg.name),
+            // e.g., the model might say: "Your image is ready."
+          },
+        }),
+      );
+      */
+
+      const result = await promise;
+      isGeneratingImage.value = false;
+      pluginResults.value.push(result);
+      selectedResult.value = result;
+      scrollToBottomOfImageContainer();
+      scrollCurrentResultToTop();
+
+      const outputPayload: Record<string, unknown> = {
+        status: result.message,
+      };
+      if (result.jsonData) {
+        outputPayload.data = result.jsonData;
+      }
+      const dc = webrtc.dc;
+      dc?.send(
+        JSON.stringify({
+          type: "conversation.item.create",
+          item: {
+            type: "function_call_output",
+            call_id: msg.call_id,
+            output: JSON.stringify(outputPayload),
+          },
+        }),
+      );
+      if (result.instructions) {
+        dc?.send(
+          JSON.stringify({
+            type: "response.create",
+            response: {
+              instructions: result.instructions,
+            },
+          }),
+        );
+      }
+    } catch (e) {
+      console.error("Failed to parse function call arguments", e);
+      const dc = webrtc.dc;
+      dc?.send(
+        JSON.stringify({
+          type: "conversation.item.create",
+          item: {
+            type: "function_call_output",
+            call_id: msg.call_id,
+            output: `Failed to parse function call arguments: ${e}`,
+          },
+        }),
+      );
+      /*
+      dc?.send(
+          JSON.stringify({
+            type: "response.create"
+          }),
+      );
+      */
+    }
+  }
+}
+
 async function startChat(): Promise<void> {
   // Gard against double start
   if (chatActive.value || connecting.value) return;
@@ -339,109 +445,7 @@ async function startChat(): Promise<void> {
         }),
       );
     });
-    dc.addEventListener("message", async (event) => {
-      const msg = JSON.parse(event.data);
-      // console.log("Message", event.data.length, msg.type);
-      if (msg.type === "error") {
-        console.error("Error", msg.error);
-      }
-      if (msg.type === "response.text.delta") {
-        currentText.value += msg.delta;
-      }
-      if (msg.type === "response.completed") {
-        if (currentText.value.trim()) {
-          messages.value.push(currentText.value);
-        }
-        currentText.value = "";
-      }
-      if (msg.type === "response.function_call_arguments.delta") {
-        const id = msg.id || msg.call_id;
-        pendingToolArgs[id] = (pendingToolArgs[id] || "") + msg.delta;
-      }
-      if (msg.type === "response.function_call_arguments.done") {
-        const id = msg.id || msg.call_id;
-        try {
-          const argStr = pendingToolArgs[id] || msg.arguments || "";
-          const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
-          delete pendingToolArgs[id];
-          isGeneratingImage.value = true;
-          generatingMessage.value = pluginGeneratingMessage(msg.name);
-          scrollToBottomOfImageContainer();
-          const context: PluginContext = {
-            images: [],
-          };
-          if (selectedResult.value?.imageData) {
-            context.images = [selectedResult.value.imageData];
-          }
-          const promise = pluginExecute(context, msg.name, args);
-          /*
-          // Allow the model to continue immediately while the image is generated
-          dc.send(
-            JSON.stringify({
-              type: "response.create",
-              response: {
-                instructions: pluginWaitingMessage(msg.name),
-                // e.g., the model might say: "Your image is ready."
-              },
-            }),
-          );
-          */
-
-          const result = await promise;
-          isGeneratingImage.value = false;
-          pluginResults.value.push(result);
-          selectedResult.value = result;
-          scrollToBottomOfImageContainer();
-          scrollCurrentResultToTop();
-
-          const outputPayload: Record<string, unknown> = {
-            status: result.message,
-          };
-          if (result.jsonData) {
-            outputPayload.data = result.jsonData;
-          }
-          dc?.send(
-            JSON.stringify({
-              type: "conversation.item.create",
-              item: {
-                type: "function_call_output",
-                call_id: msg.call_id,
-                output: JSON.stringify(outputPayload),
-              },
-            }),
-          );
-          if (result.instructions) {
-            dc?.send(
-              JSON.stringify({
-                type: "response.create",
-                response: {
-                  instructions: result.instructions,
-                },
-              }),
-            );
-          }
-        } catch (e) {
-          console.error("Failed to parse function call arguments", e);
-          dc?.send(
-            JSON.stringify({
-              type: "conversation.item.create",
-              item: {
-                type: "function_call_output",
-                call_id: msg.call_id,
-                output: `Failed to parse function call arguments: ${e}`,
-              },
-            }),
-          );
-          /*
-          dc?.send(
-              JSON.stringify({
-                type: "response.create"
-              }),
-          );
-          */
-        }
-      }
-    });
+    dc.addEventListener("message", messageHandler);
     dc.addEventListener("close", () => {
       webrtc.dc = null;
     });
