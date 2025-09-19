@@ -136,32 +136,37 @@
       <div class="flex-1 flex flex-col">
         <div class="flex-1 border rounded bg-gray-50 overflow-hidden">
           <div
-            v-if="selectedResult?.url && isTwitterUrl(selectedResult.url) && twitterEmbedData[selectedResult.url]"
+            v-if="selectedResult?.url && isTwitterUrl(selectedResult.url)"
             class="w-full h-full overflow-auto p-4 bg-white"
-            v-html="twitterEmbedData[selectedResult.url]"
-          />
-          <div
-            v-else-if="selectedResult?.url && isTwitterUrl(selectedResult.url) && twitterEmbedData[selectedResult.url] === null"
-            class="w-full h-full flex items-center justify-center p-4"
           >
-            <div class="text-center">
-              <div class="text-gray-600 mb-4">Unable to load Twitter embed</div>
-              <a
-                :href="selectedResult.url"
-                target="_blank"
-                class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-              >
-                Open on Twitter/X
-              </a>
+            <div
+              v-if="twitterEmbedData[selectedResult.url]"
+              v-html="twitterEmbedData[selectedResult.url]"
+            />
+            <div
+              v-else-if="twitterEmbedData[selectedResult.url] === null"
+              class="h-full flex items-center justify-center"
+            >
+              <div class="text-center">
+                <div class="text-gray-600 mb-4">
+                  Unable to load Twitter embed
+                </div>
+                <a
+                  :href="selectedResult.url"
+                  target="_blank"
+                  class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  Open on Twitter/X
+                </a>
+              </div>
             </div>
-          </div>
-          <div
-            v-else-if="selectedResult?.url && isTwitterUrl(selectedResult.url)"
-            class="w-full h-full flex items-center justify-center p-4"
-          >
-            <div class="text-center">
-              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <div class="text-gray-600">Loading Twitter embed...</div>
+            <div v-else class="h-full flex items-center justify-center">
+              <div class="text-center">
+                <div
+                  class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"
+                ></div>
+                <div class="text-gray-600">Loading Twitter embed...</div>
+              </div>
             </div>
           </div>
           <iframe
@@ -319,10 +324,12 @@ function scrollCurrentResultToTop(): void {
 function isTwitterUrl(url: string): boolean {
   try {
     const urlObj = new URL(url);
-    return urlObj.hostname === 'twitter.com' ||
-           urlObj.hostname === 'www.twitter.com' ||
-           urlObj.hostname === 'x.com' ||
-           urlObj.hostname === 'www.x.com';
+    return (
+      urlObj.hostname === "twitter.com" ||
+      urlObj.hostname === "www.twitter.com" ||
+      urlObj.hostname === "x.com" ||
+      urlObj.hostname === "www.x.com"
+    );
   } catch {
     return false;
   }
@@ -330,7 +337,9 @@ function isTwitterUrl(url: string): boolean {
 
 async function fetchTwitterEmbed(url: string): Promise<string | null> {
   try {
-    const response = await fetch(`/api/twitter-embed?url=${encodeURIComponent(url)}`);
+    const response = await fetch(
+      `/api/twitter-embed?url=${encodeURIComponent(url)}`,
+    );
 
     if (!response.ok) {
       throw new Error(`Twitter embed API error: ${response.status}`);
@@ -339,7 +348,7 @@ async function fetchTwitterEmbed(url: string): Promise<string | null> {
     const data = await response.json();
     return data.success ? data.html : null;
   } catch (error) {
-    console.error('Failed to fetch Twitter embed:', error);
+    console.error("Failed to fetch Twitter embed:", error);
     return null;
   }
 }
