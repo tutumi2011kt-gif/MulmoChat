@@ -315,19 +315,7 @@ async function messageHandler(event: MessageEvent): Promise<void> {
         context.images = [selectedResult.value.imageData];
       }
       const promise = pluginExecute(context, msg.name, args);
-      /*
-      // Allow the model to continue immediately while the image is generated
-      dc.send(
-        JSON.stringify({
-          type: "response.create",
-          response: {
-            instructions: pluginWaitingMessage(msg.name),
-            // e.g., the model might say: "Your image is ready."
-          },
-        }),
-      );
-      */
-
+      // We no longer send "response.create" here.
       const result = await promise;
       isGeneratingImage.value = false;
       pluginResults.value.push(result);
@@ -341,8 +329,7 @@ async function messageHandler(event: MessageEvent): Promise<void> {
       if (result.jsonData) {
         outputPayload.data = result.jsonData;
       }
-      const dc = webrtc.dc;
-      dc?.send(
+      webrtc.dc?.send(
         JSON.stringify({
           type: "conversation.item.create",
           item: {
@@ -353,7 +340,7 @@ async function messageHandler(event: MessageEvent): Promise<void> {
         }),
       );
       if (result.instructions) {
-        dc?.send(
+        webrtc.dc?.send(
           JSON.stringify({
             type: "response.create",
             response: {
@@ -364,8 +351,8 @@ async function messageHandler(event: MessageEvent): Promise<void> {
       }
     } catch (e) {
       console.error("Failed to parse function call arguments", e);
-      const dc = webrtc.dc;
-      dc?.send(
+      // Let the model know that we failed to parse the function call arguments.
+      webrtc.dc?.send(
         JSON.stringify({
           type: "conversation.item.create",
           item: {
@@ -375,13 +362,7 @@ async function messageHandler(event: MessageEvent): Promise<void> {
           },
         }),
       );
-      /*
-      dc?.send(
-          JSON.stringify({
-            type: "response.create"
-          }),
-      );
-      */
+      // We don't need to send "response.create" here.
     }
   }
 }
