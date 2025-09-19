@@ -280,6 +280,73 @@ function scrollCurrentResultToTop(): void {
   });
 }
 
+async function processToolCall(msg: any): Promise<void> {
+  const id = msg.id || msg.call_id;
+  try {
+    const argStr = pendingToolArgs[id] || msg.arguments || "";
+    const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
+    delete pendingToolArgs[id];
+    isGeneratingImage.value = true;
+    generatingMessage.value = pluginGeneratingMessage(msg.name);
+    scrollToBottomOfImageContainer();
+    const context: PluginContext = {
+      images: [],
+    };
+    if (selectedResult.value?.imageData) {
+      context.images = [selectedResult.value.imageData];
+    }
+    const promise = pluginExecute(context, msg.name, args);
+    // We no longer send "response.create" here.
+    const result = await promise;
+    isGeneratingImage.value = false;
+    pluginResults.value.push(result);
+    selectedResult.value = result;
+    scrollToBottomOfImageContainer();
+    scrollCurrentResultToTop();
+
+    const outputPayload: Record<string, unknown> = {
+      status: result.message,
+    };
+    if (result.jsonData) {
+      outputPayload.data = result.jsonData;
+    }
+    webrtc.dc?.send(
+      JSON.stringify({
+        type: "conversation.item.create",
+        item: {
+          type: "function_call_output",
+          call_id: msg.call_id,
+          output: JSON.stringify(outputPayload),
+        },
+      }),
+    );
+    if (result.instructions) {
+      webrtc.dc?.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            instructions: result.instructions,
+          },
+        }),
+      );
+    }
+  } catch (e) {
+    console.error("Failed to parse function call arguments", e);
+    // Let the model know that we failed to parse the function call arguments.
+    webrtc.dc?.send(
+      JSON.stringify({
+        type: "conversation.item.create",
+        item: {
+          type: "function_call_output",
+          call_id: msg.call_id,
+          output: `Failed to parse function call arguments: ${e}`,
+        },
+      }),
+    );
+    // We don't need to send "response.create" here.
+  }
+}
+
 async function messageHandler(event: MessageEvent): Promise<void> {
   const msg = JSON.parse(event.data);
   // console.log("Message", event.data.length, msg.type);
@@ -300,70 +367,7 @@ async function messageHandler(event: MessageEvent): Promise<void> {
     pendingToolArgs[id] = (pendingToolArgs[id] || "") + msg.delta;
   }
   if (msg.type === "response.function_call_arguments.done") {
-    const id = msg.id || msg.call_id;
-    try {
-      const argStr = pendingToolArgs[id] || msg.arguments || "";
-      const args = typeof argStr === "string" ? JSON.parse(argStr) : argStr;
-      delete pendingToolArgs[id];
-      isGeneratingImage.value = true;
-      generatingMessage.value = pluginGeneratingMessage(msg.name);
-      scrollToBottomOfImageContainer();
-      const context: PluginContext = {
-        images: [],
-      };
-      if (selectedResult.value?.imageData) {
-        context.images = [selectedResult.value.imageData];
-      }
-      const promise = pluginExecute(context, msg.name, args);
-      // We no longer send "response.create" here.
-      const result = await promise;
-      isGeneratingImage.value = false;
-      pluginResults.value.push(result);
-      selectedResult.value = result;
-      scrollToBottomOfImageContainer();
-      scrollCurrentResultToTop();
-
-      const outputPayload: Record<string, unknown> = {
-        status: result.message,
-      };
-      if (result.jsonData) {
-        outputPayload.data = result.jsonData;
-      }
-      webrtc.dc?.send(
-        JSON.stringify({
-          type: "conversation.item.create",
-          item: {
-            type: "function_call_output",
-            call_id: msg.call_id,
-            output: JSON.stringify(outputPayload),
-          },
-        }),
-      );
-      if (result.instructions) {
-        webrtc.dc?.send(
-          JSON.stringify({
-            type: "response.create",
-            response: {
-              instructions: result.instructions,
-            },
-          }),
-        );
-      }
-    } catch (e) {
-      console.error("Failed to parse function call arguments", e);
-      // Let the model know that we failed to parse the function call arguments.
-      webrtc.dc?.send(
-        JSON.stringify({
-          type: "conversation.item.create",
-          item: {
-            type: "function_call_output",
-            call_id: msg.call_id,
-            output: `Failed to parse function call arguments: ${e}`,
-          },
-        }),
-      );
-      // We don't need to send "response.create" here.
-    }
+    await processToolCall(msg);
   }
 }
 
