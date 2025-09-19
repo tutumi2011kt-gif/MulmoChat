@@ -476,7 +476,6 @@ async function startChat(): Promise<void> {
       body: offer.sdp,
     });
     const responseText = await response.text();
-    console.log("Received answer from OpenAI", response, responseText);
 
     await webrtc.pc.setRemoteDescription({ type: "answer", sdp: responseText });
     chatActive.value = true;
