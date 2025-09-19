@@ -417,6 +417,23 @@ async function startChat(): Promise<void> {
           }
         } catch (e) {
           console.error("Failed to parse function call arguments", e);
+          dc?.send(
+            JSON.stringify({
+              type: "conversation.item.create",
+              item: {
+                type: "function_call_output",
+                call_id: msg.call_id,
+                output: `Failed to parse function call arguments: ${e}`,
+              },
+            }),
+          );
+          /*
+          dc?.send(
+              JSON.stringify({
+                type: "response.create"
+              }),
+          );
+          */
         }
       }
     });

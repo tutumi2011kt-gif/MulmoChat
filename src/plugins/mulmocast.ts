@@ -22,7 +22,7 @@ const toolDefinition = {
             text: {
               type: "string",
               description:
-                "The text to be spoken by the presenter, which is also used to generate an image",
+                "The text to be spoken by the presenter, which is also used to generate an image. Typically 50 to 70 words.",
             },
           },
           required: ["text"],
