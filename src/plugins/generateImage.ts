@@ -73,5 +73,4 @@ export const plugin: Plugin = {
   toolDefinition,
   execute: generateImage,
   generatingMessage: "Generating image...",
-  waitingMessage: "Tell the user to that you are generating the image.",
 };

@@ -296,7 +296,19 @@ async function processToolCall(msg: any): Promise<void> {
       context.images = [selectedResult.value.imageData];
     }
     const promise = pluginExecute(context, msg.name, args);
-    // We no longer send "response.create" here.
+    const waitingMessage = pluginWaitingMessage(msg.name);
+    if (waitingMessage) {
+      webrtc.dc?.send(
+        JSON.stringify({
+          type: "response.create",
+          response: {
+            instructions: waitingMessage,
+            // e.g., the model might say: "Your image is ready."
+          },
+        }),
+      );
+    }
+
     const result = await promise;
     isGeneratingImage.value = false;
     pluginResults.value.push(result);

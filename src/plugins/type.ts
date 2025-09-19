@@ -35,7 +35,7 @@ export interface Plugin {
     args: Record<string, any>,
   ) => Promise<PluginResult>;
   generatingMessage: string;
-  waitingMessage: string;
+  waitingMessage?: string;
 }
 
 const pluginList = [
