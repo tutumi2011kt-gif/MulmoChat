@@ -135,8 +135,37 @@
       <!-- Main content -->
       <div class="flex-1 flex flex-col">
         <div class="flex-1 border rounded bg-gray-50 overflow-hidden">
+          <div
+            v-if="selectedResult?.url && isTwitterUrl(selectedResult.url) && twitterEmbedData[selectedResult.url]"
+            class="w-full h-full overflow-auto p-4 bg-white"
+            v-html="twitterEmbedData[selectedResult.url]"
+          />
+          <div
+            v-else-if="selectedResult?.url && isTwitterUrl(selectedResult.url) && twitterEmbedData[selectedResult.url] === null"
+            class="w-full h-full flex items-center justify-center p-4"
+          >
+            <div class="text-center">
+              <div class="text-gray-600 mb-4">Unable to load Twitter embed</div>
+              <a
+                :href="selectedResult.url"
+                target="_blank"
+                class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Open on Twitter/X
+              </a>
+            </div>
+          </div>
+          <div
+            v-else-if="selectedResult?.url && isTwitterUrl(selectedResult.url)"
+            class="w-full h-full flex items-center justify-center p-4"
+          >
+            <div class="text-center">
+              <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <div class="text-gray-600">Loading Twitter embed...</div>
+            </div>
+          </div>
           <iframe
-            v-if="selectedResult?.url"
+            v-else-if="selectedResult?.url"
             :src="selectedResult.url"
             class="w-full h-full rounded"
             frameborder="0"
@@ -235,9 +264,16 @@ const pendingToolArgs: Record<string, string> = {};
 const showConfigPopup = ref(false);
 const selectedResult = ref<PluginResult | null>(null);
 const userInput = ref("");
+const twitterEmbedData = ref<{ [key: string]: string }>({});
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val);
+});
+
+watch(selectedResult, (newResult) => {
+  if (newResult?.url && isTwitterUrl(newResult.url)) {
+    handleTwitterEmbed(newResult.url);
+  }
 });
 const chatActive = ref(false);
 
@@ -278,6 +314,43 @@ function scrollCurrentResultToTop(): void {
       }
     }
   });
+}
+
+function isTwitterUrl(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname === 'twitter.com' ||
+           urlObj.hostname === 'www.twitter.com' ||
+           urlObj.hostname === 'x.com' ||
+           urlObj.hostname === 'www.x.com';
+  } catch {
+    return false;
+  }
+}
+
+async function fetchTwitterEmbed(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(`/api/twitter-embed?url=${encodeURIComponent(url)}`);
+
+    if (!response.ok) {
+      throw new Error(`Twitter embed API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.success ? data.html : null;
+  } catch (error) {
+    console.error('Failed to fetch Twitter embed:', error);
+    return null;
+  }
+}
+
+async function handleTwitterEmbed(url: string): Promise<void> {
+  if (!isTwitterUrl(url) || url in twitterEmbedData.value) {
+    return;
+  }
+
+  const embedHtml = await fetchTwitterEmbed(url);
+  twitterEmbedData.value[url] = embedHtml;
 }
 
 async function processToolCall(msg: any): Promise<void> {
