@@ -359,6 +359,7 @@ async function handleTwitterEmbed(url: string): Promise<void> {
   }
 
   const embedHtml = await fetchTwitterEmbed(url);
+  console.log("*** Twitter embed", url, embedHtml);
   twitterEmbedData.value[url] = embedHtml;
 }
 
