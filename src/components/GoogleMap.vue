@@ -121,7 +121,7 @@ watch(() => props.zoom, (newZoom) => {
 <style scoped>
 .map-container {
   width: 100%;
-  height: 400px;
+  height: 100vh;
   border-radius: 8px;
   overflow: hidden;
 }
