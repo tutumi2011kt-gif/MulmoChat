@@ -9,6 +9,7 @@ const router: Router = express.Router();
 // Session start endpoint
 router.get("/start", async (req: Request, res: Response): Promise<void> => {
   const openaiKey = process.env.OPENAI_API_KEY;
+  const googleMapKey = process.env.GOOGLE_MAP_API_KEY;
 
   if (!openaiKey) {
     res
@@ -49,6 +50,7 @@ router.get("/start", async (req: Request, res: Response): Promise<void> => {
       success: true,
       message: "Session started",
       ephemeralKey: data.value,
+      googleMapKey: googleMapKey,
     });
   } catch (error: unknown) {
     console.error("Failed to generate ephemeral key:", error);
