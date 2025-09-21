@@ -92,6 +92,15 @@
                   {{ result.title || "Interactive content" }}
                 </div>
               </div>
+              <div
+                v-else-if="result.location"
+                class="text-center p-4 bg-blue-50 rounded"
+              >
+                <div class="text-blue-600 font-medium">🗺️ Map Location</div>
+                <div class="text-xs text-gray-600 mt-1 truncate">
+                  {{ typeof result.location === 'string' ? result.location : `${result.location.lat}, ${result.location.lng}` }}
+                </div>
+              </div>
               <div v-else class="text-center p-4 bg-gray-50 rounded">
                 <div class="text-gray-600 font-medium">📋 Text Result</div>
                 <div class="text-xs text-gray-500 mt-1 truncate">
@@ -190,6 +199,16 @@
               alt="Current generated image"
             />
           </div>
+          <div
+            v-else-if="selectedResult?.location && googleMapKey"
+            class="w-full h-full p-4"
+          >
+            <GoogleMap
+              :location="selectedResult.location"
+              :api-key="googleMapKey"
+              :zoom="15"
+            />
+          </div>
           <div v-else class="w-full h-full flex items-center justify-center">
             <div class="text-gray-400 text-lg">Canvas</div>
           </div>
@@ -250,6 +269,7 @@ import {
   pluginGeneratingMessage,
   pluginWaitingMessage,
 } from "./plugins/type";
+import GoogleMap from "./components/GoogleMap.vue";
 
 const SYSTEM_PROMPT_KEY = "system_prompt_v2";
 const DEFAULT_SYSTEM_PROMPT =
@@ -270,6 +290,7 @@ const showConfigPopup = ref(false);
 const selectedResult = ref<PluginResult | null>(null);
 const userInput = ref("");
 const twitterEmbedData = ref<{ [key: string]: string }>({});
+const googleMapKey = ref<string | null>(null);
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val);
@@ -490,6 +511,7 @@ async function startChat(): Promise<void> {
 
     const data = await response.json();
     config.apiKey = data.ephemeralKey;
+    googleMapKey.value = data.googleMapKey;
 
     if (!config.apiKey) {
       throw new Error("No ephemeral key received from server");
