@@ -15,6 +15,7 @@ export interface PluginResult {
   jsonData?: any;
   instructions?: string;
   htmlData?: string;
+  location?: string | { lat: number; lng: number };
 }
 
 export interface Plugin {

@@ -7,9 +7,12 @@ import { ref, onMounted, watch } from 'vue'
 
 const props = defineProps({
   location: {
-    type: Object,
+    type: [Object, String],
     required: true,
-    validator: (value) => value && typeof value.lat === 'number' && typeof value.lng === 'number'
+    validator: (value) => {
+      if (typeof value === 'string') return value.length > 0
+      return value && typeof value.lat === 'number' && typeof value.lng === 'number'
+    }
   },
   apiKey: {
     type: String,
@@ -24,23 +27,57 @@ const props = defineProps({
 const mapContainer = ref(null)
 let map = null
 let marker = null
+let geocoder = null
 
-const initMap = () => {
-  map = new google.maps.Map(mapContainer.value, {
-    center: props.location,
-    zoom: props.zoom
-  })
-
-  marker = new google.maps.Marker({
-    position: props.location,
-    map: map
+const geocodeLocation = (locationName) => {
+  return new Promise((resolve, reject) => {
+    geocoder.geocode({ address: locationName }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        const location = results[0].geometry.location
+        resolve({ lat: location.lat(), lng: location.lng() })
+      } else {
+        reject(new Error(`Geocoding failed: ${status}`))
+      }
+    })
   })
 }
 
-const updateLocation = (newLocation) => {
+const getCoordinates = async (location) => {
+  if (typeof location === 'string') {
+    return await geocodeLocation(location)
+  }
+  return location
+}
+
+const initMap = async () => {
+  geocoder = new google.maps.Geocoder()
+
+  try {
+    const coordinates = await getCoordinates(props.location)
+
+    map = new google.maps.Map(mapContainer.value, {
+      center: coordinates,
+      zoom: props.zoom
+    })
+
+    marker = new google.maps.Marker({
+      position: coordinates,
+      map: map
+    })
+  } catch (error) {
+    console.error('Error initializing map:', error)
+  }
+}
+
+const updateLocation = async (newLocation) => {
   if (map && marker) {
-    map.setCenter(newLocation)
-    marker.setPosition(newLocation)
+    try {
+      const coordinates = await getCoordinates(newLocation)
+      map.setCenter(coordinates)
+      marker.setPosition(coordinates)
+    } catch (error) {
+      console.error('Error updating location:', error)
+    }
   }
 }
 
@@ -52,7 +89,7 @@ const loadGoogleMapsAPI = () => {
     }
 
     const script = document.createElement('script')
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${props.apiKey}&libraries=places`
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${props.apiKey}&libraries=geometry`
     script.async = true
     script.defer = true
 
@@ -66,7 +103,7 @@ const loadGoogleMapsAPI = () => {
 onMounted(async () => {
   try {
     await loadGoogleMapsAPI()
-    initMap()
+    await initMap()
   } catch (error) {
     console.error('Error loading Google Maps:', error)
   }
