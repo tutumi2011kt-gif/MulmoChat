@@ -48,7 +48,7 @@ const pluginList = [
   MapPlugin,
 ];
 
-export const pluginTools = pluginList.map(
+export const pluginTools = () => pluginList.map(
   (plugin) => plugin.plugin.toolDefinition,
 );
 
