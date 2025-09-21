@@ -2,6 +2,7 @@ import * as GenerateImagePlugin from "./generateImage";
 import * as EditImagePlugin from "./editImage";
 import * as BrowsePlugin from "./browse";
 import * as MulmocastPlugin from "./mulmocast";
+import * as MapPlugin from "./map";
 
 export interface PluginContext {
   images: string[];
@@ -44,6 +45,7 @@ const pluginList = [
   EditImagePlugin,
   BrowsePlugin,
   MulmocastPlugin,
+  MapPlugin,
 ];
 
 export const pluginTools = pluginList.map(
