@@ -2,6 +2,7 @@ import express, { Request, Response, Router } from "express";
 import dotenv from "dotenv";
 import { GoogleGenAI } from "@google/genai";
 import { puppeteerCrawlerAgent } from "mulmocast";
+import { StartApiResponse } from "../types";
 dotenv.config();
 
 const router: Router = express.Router();
@@ -46,12 +47,13 @@ router.get("/start", async (req: Request, res: Response): Promise<void> => {
     }
 
     const data = await response.json();
-    res.json({
+    const responseData: StartApiResponse = {
       success: true,
       message: "Session started",
       ephemeralKey: data.value,
       googleMapKey: googleMapKey,
-    });
+    };
+    res.json(responseData);
   } catch (error: unknown) {
     console.error("Failed to generate ephemeral key:", error);
     const errorMessage =

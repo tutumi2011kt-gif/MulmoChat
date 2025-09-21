@@ -269,6 +269,7 @@ import {
   pluginGeneratingMessage,
   pluginWaitingMessage,
 } from "./plugins/type";
+import type { StartApiResponse } from "../server/types";
 import GoogleMap from "./components/GoogleMap.vue";
 
 const SYSTEM_PROMPT_KEY = "system_prompt_v2";
@@ -509,9 +510,9 @@ async function startChat(): Promise<void> {
       throw new Error(`API error: ${response.statusText}`);
     }
 
-    const data = await response.json();
-    config.apiKey = data.ephemeralKey;
-    googleMapKey.value = data.googleMapKey;
+    const startResponse: StartApiResponse = await response.json();
+    config.apiKey = startResponse.ephemeralKey;
+    googleMapKey.value = startResponse.googleMapKey;
 
     if (!config.apiKey) {
       throw new Error("No ephemeral key received from server");
