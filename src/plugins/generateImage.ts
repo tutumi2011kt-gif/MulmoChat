@@ -73,4 +73,5 @@ export const plugin: Plugin = {
   toolDefinition,
   execute: generateImage,
   generatingMessage: "Generating image...",
+  isEnabled: () => true,
 };

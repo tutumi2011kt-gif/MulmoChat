@@ -34,5 +34,5 @@ export const plugin: Plugin = {
     };
   },
   generatingMessage: "Loading map...",
-  requiresGoogleMapKey: true,
+  isEnabled: (startResponse) => !!startResponse?.googleMapKey,
 };

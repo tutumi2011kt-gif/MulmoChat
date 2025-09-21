@@ -112,4 +112,5 @@ export const plugin: Plugin = {
   execute: mulmocast,
   generatingMessage: "Processing with Mulmocast...",
   waitingMessage: "Tell the user that you are processing with Mulmocast.",
+  isEnabled: () => true,
 };

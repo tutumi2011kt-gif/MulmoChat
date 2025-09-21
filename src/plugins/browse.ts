@@ -72,4 +72,5 @@ export const plugin: Plugin = {
   generatingMessage: "Browsing webpage...",
   waitingMessage:
     "Tell the user to that you are accessing the specified web page.",
+  isEnabled: () => true,
 };
