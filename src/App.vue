@@ -543,7 +543,7 @@ async function startChat(): Promise<void> {
                 voice: "shimmer",
               },
             },
-            tools: pluginTools(),
+            tools: pluginTools(startResponse),
           },
         }),
       );

@@ -3,6 +3,7 @@ import * as EditImagePlugin from "./editImage";
 import * as BrowsePlugin from "./browse";
 import * as MulmocastPlugin from "./mulmocast";
 import * as MapPlugin from "./map";
+import type { StartApiResponse } from "../../server/types";
 
 export interface PluginContext {
   images: string[];
@@ -48,7 +49,7 @@ const pluginList = [
   MapPlugin,
 ];
 
-export const pluginTools = () => pluginList.map(
+export const pluginTools = (startResponse?: StartApiResponse) => pluginList.map(
   (plugin) => plugin.plugin.toolDefinition,
 );
 
