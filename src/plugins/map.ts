@@ -3,7 +3,7 @@ import { Plugin, PluginContext, PluginResult } from "./type";
 export const plugin: Plugin = {
   toolDefinition: {
     type: "function",
-    name: "map",
+    name: "presentMap",
     description: "Show a location on a map by providing a location name or address",
     parameters: {
       type: "object",
@@ -32,5 +32,4 @@ export const plugin: Plugin = {
     };
   },
   generatingMessage: "Loading map...",
-  waitingMessage: "Preparing map location..."
 };
