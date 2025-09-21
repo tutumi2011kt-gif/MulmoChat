@@ -32,4 +32,5 @@ export const plugin: Plugin = {
     };
   },
   generatingMessage: "Loading map...",
+  requiresGoogleMapKey: true,
 };

@@ -292,6 +292,7 @@ const selectedResult = ref<PluginResult | null>(null);
 const userInput = ref("");
 const twitterEmbedData = ref<{ [key: string]: string }>({});
 const googleMapKey = ref<string | null>(null);
+const startResponse = ref<StartApiResponse | null>(null);
 
 watch(systemPrompt, (val) => {
   localStorage.setItem(SYSTEM_PROMPT_KEY, val);
@@ -510,9 +511,9 @@ async function startChat(): Promise<void> {
       throw new Error(`API error: ${response.statusText}`);
     }
 
-    const startResponse: StartApiResponse = await response.json();
-    config.apiKey = startResponse.ephemeralKey;
-    googleMapKey.value = startResponse.googleMapKey;
+    startResponse.value = await response.json();
+    config.apiKey = startResponse.value.ephemeralKey;
+    googleMapKey.value = startResponse.value.googleMapKey;
 
     if (!config.apiKey) {
       throw new Error("No ephemeral key received from server");
@@ -543,7 +544,7 @@ async function startChat(): Promise<void> {
                 voice: "shimmer",
               },
             },
-            tools: pluginTools(startResponse),
+            tools: pluginTools(startResponse.value),
           },
         }),
       );

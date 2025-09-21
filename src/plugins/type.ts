@@ -39,6 +39,7 @@ export interface Plugin {
   ) => Promise<PluginResult>;
   generatingMessage: string;
   waitingMessage?: string;
+  requiresGoogleMapKey?: boolean;
 }
 
 const pluginList = [
@@ -49,9 +50,17 @@ const pluginList = [
   MapPlugin,
 ];
 
-export const pluginTools = (startResponse?: StartApiResponse) => pluginList.map(
-  (plugin) => plugin.plugin.toolDefinition,
-);
+export const pluginTools = (startResponse?: StartApiResponse) => {
+  return pluginList
+    .filter((plugin) => {
+      // If plugin requires googleMapKey but it's not available, exclude it
+      if (plugin.plugin.requiresGoogleMapKey && !startResponse?.googleMapKey) {
+        return false;
+      }
+      return true;
+    })
+    .map((plugin) => plugin.plugin.toolDefinition);
+};
 
 const plugins = pluginList.reduce(
   (acc, plugin) => {
