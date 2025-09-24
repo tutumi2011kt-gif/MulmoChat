@@ -5,18 +5,27 @@
   "type": "module",
   "author": "snakajima",
   "license": "AGPL-3.0-only",
+
+  "engines": {
+    "node": "18.x"
+  },
+
   "scripts": {
     "dev": "concurrently \"npm run server\" \"vite\"",
     "dev:client": "vite",
     "dev:server": "tsx server/index.ts",
     "server": "tsx server/index.ts",
-    "build": "vue-tsc -b && vite build && npm run build:server",
+
+    "build": "vite build && npm run build:server",
     "build:server": "tsc -p server/tsconfig.json",
+    "typecheck": "vue-tsc --noEmit",
+
     "lint": "eslint src server",
     "preview": "vite preview",
     "start": "NODE_ENV=production node server/dist/index.js",
     "format": "prettier --write '{src,server}/**/*.{ts,json,yaml,vue}'"
   },
+
   "dependencies": {
     "@google/genai": "^1.17.0",
     "cors": "^2.8.5",
